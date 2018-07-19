@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1 class="page-title"> {{ title }}
+        <small>register packages, samples, grant access to new users and request reports</small>
+    </h1>
+    <div class="page-bar">
+        <ul class="page-breadcrumb">
+            <li>
+                <i class="icon-home"></i>
+                <a href="{{ url_for('dashboard.index') }}">Dashboard</a>
+            </li>
+        </ul>
+    </div>
+    <!-- END PAGE HEADER-->
+
+    <h1>Data summary</h1>
+
+    <!-- BEGIN DASHBOARD STATS 1-->
+    <div class="row">
+        <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12">
+            <a class="dashboard-stat dashboard-stat-v2 blue" href="#">
+                <div class="visual">
+                    <i class="fa fa-archive"></i>
+                </div>
+                <div class="details">
+                    <div class="number">
+                        <span data-counter="counterup" data-value="{{ stats['private_files'] }}">0</span>
+                    </div>
+                    <div class="desc"> Private files uploaded</div>
+                </div>
+            </a>
+        </div>
+        <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12">
+            <a class="dashboard-stat dashboard-stat-v2 red" href="#">
+                <div class="visual">
+                    <i class="fa fa-chart-bar"></i>
+                </div>
+                <div class="details">
+                    <div class="number">
+                        <span data-counter="counterup" data-value="{{ stats['shared_files'] }}">0</span></div>
+                    <div class="desc"> Shared files uploaded </div>
+                </div>
+            </a>
+        </div>
+    </div>
+    <div class="clearfix"></div>
+    <!-- END DASHBOARD STATS 1-->
+
+    <h1>Quick links</h1>
+
+    <!-- QUICK LINKS -->
+    <div class="row">
+        <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12">
+            <a class="dashboard-stat dashboard-stat-v2 green" href="#">
+                <div class="visual">
+                    <i class="fa fa-file-upload"></i>
+                </div>
+                <div class="details">
+                    <div class="number">
+                        <span>Upload File</span>
+                    </div>
+                    <div class="desc"> Upload file, store metadata... </div>
+                </div>
+            </a>
+        </div>
+    </div>
+    <div class="clearfix"></div>
+    <!-- QUICK LINKS -->
+
+    <h1>Configuration</h1>
+
+
+{% endblock %}

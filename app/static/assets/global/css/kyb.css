@@ -1,0 +1,36 @@
+.mt-repeater .mt-repeater-input .control-label {
+    margin-bottom: 0 !important; }
+
+.mt-repeater .mt-repeater-input .control-label label {
+    margin-bottom: 0 !important; }
+
+h3.block {
+    padding-bottom: 0 !important;
+    padding-top: 0 !important; }
+
+.form-group {
+    margin-bottom: 5px !important; }
+
+.form .form-body {
+    padding: 0 !important;
+}
+
+.mt-repeater-item:nth-child(even), div[data-repeater-list="specimens"] > .mt-repeater-item:nth-child(even) {
+    background-color: #FFFFFF !important;
+}
+
+.mt-repeater-item:nth-child(odd), div[data-repeater-list="specimens"] > .mt-repeater-item:nth-child(odd){
+    background-color: #F2F4F4 !important;
+}
+
+div.dt-buttons {
+    float: right !important;
+}
+
+.table td {
+    font-size: 12px;
+}
+
+.table > thead:first-child > tr:first-child > th {
+    font-size: 12px;
+}
