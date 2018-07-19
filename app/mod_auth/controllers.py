@@ -5,7 +5,7 @@ from flask_login import current_user, login_user, logout_user
 
 from app.mod_auth.forms import LoginForm
 from app.mod_auth.models import User
-from app.mod_rest_client.client import AuthClient
+from app.mod_rest_client.client import AuthClient, PeopleClient
 
 from app.mod_utils.utils import is_safe_url
 
@@ -26,30 +26,30 @@ def login():
         if login_form.validate_on_submit():
             response = AuthClient().login(login_form.username.data, login_form.password.data)
             if response.status_code in [401, 403]:
-                flash('Incorret username or password', 'danger')
+                flash('Incorrect username or password', 'danger')
                 return redirect(url_for('auth.login'))
-            if response.status_code == 200:
-                alf_ticket =  response.body['data']['ticket']
-                user = User.query.filter_by(username=login_form.username.data).first()
-                if user is None:
-                    user_response = AuthClient().userinfo(login_form.username.data, alf_ticket)
 
-                    #Create a new user in local DB
-                    u = User(alf_ticket, **user_response)
-                    u.add_or_update()
-                    u.save()
+            alf_ticket =  response.body['data']['ticket']
+            user = User.query.filter_by(username=login_form.username.data).first()
+            if user is None:
+                user_response = PeopleClient().userinfo(login_form.username.data, alf_ticket)
 
-                    #Authenticate newly created user
-                    u.authenticate(alf_ticket)
-                    login_user(u)
-                else:
-                    user.authenticate(alf_ticket)
-                    login_user(user)
+                #Create a new user in local DB
+                u = User(alf_ticket, **user_response.body)
+                u.add_or_update()
+                u.save()
 
-                _next = request.args.get('next')
-                if not is_safe_url(_next):
-                    return abort(400)
-                return redirect(_next or url_for('dashboard.index'))
+                #Authenticate newly created user
+                u.authenticate(alf_ticket)
+                login_user(u)
+            else:
+                user.authenticate(alf_ticket)
+                login_user(user)
+
+            _next = request.args.get('next')
+            if not is_safe_url(_next):
+                return abort(400)
+            return redirect(_next or url_for('dashboard.index'))
 
     return render_template('auth/login.html', title='Sign In', login_form=login_form)
 

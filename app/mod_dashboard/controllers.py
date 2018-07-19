@@ -18,9 +18,15 @@ def index():
 @entry_point.route('/dashboard', methods=['GET'])
 @login_required
 def dashboard():
-    private_files = NodeClient().private_filelist(current_user.ticket)
-    shared_files = NodeClient().shared_filelist(current_user.ticket)
-    print(shared_files)
+    private_response = NodeClient().private_filelist(current_user.ticket)
+    shared_response = NodeClient().shared_filelist(current_user.ticket)
+    if private_response.status_code in [401, 403] or shared_response.status_code in [401, 403]:
+        flash('Logged out due to inactivity. Please login again.', 'danger')
+        return redirect(url_for('auth.login'))
+
+    private_files = private_response.body
+    shared_files = shared_response.body
+
     stats = {}
     stats['private_files'] = len(private_files['list']['entries'])
     stats['shared_files'] = len(shared_files['list']['entries'])

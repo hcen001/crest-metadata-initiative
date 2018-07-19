@@ -49,6 +49,7 @@ class AuthClient(Client):
         try:
             response = self.api.auth.login(body={'username': username, 'password': password})
         except Exception as e:
+            print('**RESPONSE**', e.response)
             return e.response
         else:
             return response
@@ -75,7 +76,6 @@ class PeopleClient(Client):
             return e.response
         else:
             return response
-        return None
 
 class NodeClient(Client):
     """docstring for NodeClient"""
@@ -88,32 +88,14 @@ class NodeClient(Client):
         try:
             response = self.api.node.private_list(body=None, params={'alf_ticket': ticket}, headers={})
         except Exception as e:
-            if e.response.status_code == 403:
-                pass
-            if e.response.status_code == 401:
-                current_user.logout()
-                flash('You have been logged out due to inactivity. Please login again.', 'danger')
-                redirect(url_for('auth.login'))
-            if e.response.status_code == 403:
-                pass
-            if e.response.status_code == 404:
-                pass
+            return e.response
         else:
-            return response.body
+            return response
 
     def shared_filelist(self, ticket):
         try:
             response = self.api.node.shared_list(body=None, params={'alf_ticket': ticket}, headers={})
         except Exception as e:
-            if e.response.status_code == 403:
-                pass
-            if e.response.status_code == 401:
-                current_user.logout()
-                flash('You have been logged out due to inactivity. Please login again.', 'danger')
-                redirect(url_for('auth.login'))
-            if e.response.status_code == 403:
-                pass
-            if e.response.status_code == 404:
-                pass
+            return e.response
         else:
-            return response.body
+            return response
