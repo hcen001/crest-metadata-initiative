@@ -1,4 +1,4 @@
-from flask import Blueprint, redirect, url_for, abort, render_template
+from flask import Blueprint, redirect, url_for, abort, render_template, flash
 from flask_login import login_required, current_user
 
 from app.mod_rest_client.client import NodeClient
@@ -21,6 +21,7 @@ def dashboard():
     private_response = NodeClient().private_filelist(current_user.ticket)
     shared_response = NodeClient().shared_filelist(current_user.ticket)
     if private_response.status_code in [401, 403] or shared_response.status_code in [401, 403]:
+        current_user.logout()
         flash('Logged out due to inactivity. Please login again.', 'danger')
         return redirect(url_for('auth.login'))
 
