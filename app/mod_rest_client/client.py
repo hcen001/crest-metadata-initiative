@@ -49,7 +49,6 @@ class AuthClient(Client):
         try:
             response = self.api.auth.login(body={'username': username, 'password': password})
         except Exception as e:
-            print('**RESPONSE**', e.response)
             return e.response
         else:
             return response
@@ -57,6 +56,14 @@ class AuthClient(Client):
     def logout(self, ticket):
         try:
             response = self.api.auth.logout(ticket, params={'alf_ticket': ticket})
+        except Exception as e:
+            return e.response
+        else:
+            return response
+
+    def validate_ticket(self, ticket):
+        try:
+            response = self.api.auth.authenticate(ticket, params={'alf_ticket': ticket})
         except Exception as e:
             return e.response
         else:

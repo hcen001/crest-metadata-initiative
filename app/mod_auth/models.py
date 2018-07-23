@@ -1,6 +1,10 @@
 from app.models import Base, PersonBase
 from app import db, login
 
+from flask_login import current_user
+
+from app.mod_rest_client.client import AuthClient
+
 # Define a User model
 class User(PersonBase):
 
@@ -38,7 +42,13 @@ class User(PersonBase):
     @property
     def is_authenticated(self):
         """Return True if the user is authenticated."""
-        return self.authenticated
+        if self.alf_ticket is not None:
+            response = AuthClient().validate_ticket(self.alf_ticket)
+            if response.status_code != 200:
+                current_user.logout()
+            return response.status_code == 200
+        else:
+            return self.authenticated
 
     @property
     def alf_ticket(self):
