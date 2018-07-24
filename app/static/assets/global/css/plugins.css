@@ -1,6 +1,6 @@
 @charset "UTF-8";
 /******************************
- 3RD PARTY PLUGIN CUSTOMIZATION 
+ 3RD PARTY PLUGIN CUSTOMIZATION
 ******************************/
 /* Cubic Bezier Transition */
 /***
@@ -353,7 +353,7 @@ Bootstrap Select
   z-index: 10050 !important; }
 
 /***
-Bootstrap Switch 
+Bootstrap Switch
 ***/
 .bootstrap-switch {
   border-color: #c2cad8; }
@@ -519,7 +519,7 @@ Bootstrap Wizard
     color: #333; }
     .form-wizard .steps > li.done > a.step .desc i {
       font-size: 12px;
-      font-weight: normal;
+      /*font-weight: normal;*/
       color: #999;
       display: inline-block; }
 

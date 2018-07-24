@@ -16,3 +16,5 @@ class People(Enum):
 class Node(Enum):
     private_nodelist        = content_api+"nodes/-my-/children"
     shared_nodelist         = content_api+"nodes/-shared-/children"
+    shared_folder_info      = content_api+"nodes/-shared-"
+    upload                  = content_api+"nodes/{}/children"

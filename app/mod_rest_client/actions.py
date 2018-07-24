@@ -20,6 +20,8 @@ class NodesResource(Resource):
     """docstring for NodesResource"""
     actions = {
         'private_list': {'method': 'GET', 'url': Node.private_nodelist.value},
-        'shared_list': {'method': 'GET', 'url': Node.shared_nodelist.value}
+        'shared_list': {'method': 'GET', 'url': Node.shared_nodelist.value},
+        'shared_folder_info': {'method': 'GET', 'url': Node.shared_folder_info.value},
+        'upload': {'method': 'POST', 'url': Node.upload.value}
     }
 

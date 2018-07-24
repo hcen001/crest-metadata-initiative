@@ -33,7 +33,7 @@
         <!-- END PAGE LEVEL PLUGINS -->
         <!-- BEGIN THEME GLOBAL STYLES -->
         <link href="{{ url_for('static', filename='assets/global/css/components-rounded.min.css') }}" rel="stylesheet" id="style_components" type="text/css" />
-        <link href="{{ url_for('static', filename='assets/global/css/plugins.min.css') }}" rel="stylesheet" type="text/css" />
+        <link href="{{ url_for('static', filename='assets/global/css/plugins.css') }}" rel="stylesheet" type="text/css" />
         <link href="{{ url_for('static', filename='assets/global/css/kyb.css') }}" rel="stylesheet" type="text/css" />
         <!-- END THEME GLOBAL STYLES -->
         <!-- BEGIN THEME LAYOUT STYLES -->
@@ -122,7 +122,7 @@
                             </a>
                         </li>
                         <li id="files" class="nav-item  ">
-                            <a href="#" class="nav-link nav-toggle">
+                            <a href="{{ url_for('files.index') }}" class="nav-link nav-toggle">
                                 <i class="icon-folder"></i>
                                 <span class="title">Files and metadata</span>
                                 <span class="arrow"></span>
@@ -252,7 +252,6 @@
             <script src="{{ url_for('static', filename='assets/global/plugins/counterup/jquery.counterup.min.js')}}" type="text/javascript"></script>
             <script src="{{ url_for('static', filename='assets/global/plugins/bootstrap-select/js/bootstrap-select.min.js')}}" type="text/javascript"></script>
             <script src="{{ url_for('static', filename='assets/global/plugins/jquery-multi-select/js/jquery.multi-select.js')}}" type="text/javascript"></script>
-
             <!-- END PAGE LEVEL PLUGINS -->
             <!-- BEGIN THEME GLOBAL SCRIPTS -->
             <script src="{{ url_for('static', filename='assets/global/scripts/app.js') }}" type="text/javascript"></script>

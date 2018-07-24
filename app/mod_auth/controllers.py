@@ -44,6 +44,7 @@ def login():
                 login_user(u)
             else:
                 user.authenticate(alf_ticket)
+                user.fetch_session_info()
                 login_user(user)
 
             _next = request.args.get('next')

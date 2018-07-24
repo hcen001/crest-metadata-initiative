@@ -106,3 +106,20 @@ class NodeClient(Client):
             return e.response
         else:
             return response
+
+    def upload(self, ticket, files, node_ref):
+        try:
+            response = self.api.node.upload(node_ref, files=files, params={'alf_ticket': ticket}, headers={})
+        except Exception as e:
+            print(e)
+            return e.response
+        else:
+            return response
+
+    def shared_folder_info(self, ticket):
+        try:
+            response = self.api.node.shared_folder_info(body=None, params={'alf_ticket': ticket}, headers={})
+        except Exception as e:
+            return e.response
+        else:
+            return response

@@ -28,6 +28,12 @@ login.init_app(app)
 login.login_view = 'auth.login'
 login.login_message_category = "danger"
 
+#Flask-Uploads
+from flask_uploads import UploadSet, configure_uploads
+# app.config['UPLOADED_DATASETS_DEST'] = 'uploads'
+datasets = UploadSet('datasets', ('csv','xls','xlsx','zip'))
+configure_uploads(app, datasets)
+
 # Register blueprint(s)
 from app.mod_auth.controllers import mod_auth as auth_module
 app.register_blueprint(auth_module, url_prefix='/auth')
@@ -35,8 +41,11 @@ app.register_blueprint(auth_module, url_prefix='/auth')
 from app.mod_dashboard.controllers import entry_point
 app.register_blueprint(entry_point)
 
+from app.mod_files.controllers import mod_files
+app.register_blueprint(mod_files, url_prefix='/files')
+
 @app.shell_context_processor
 def make_shell_context():
     from app.mod_auth.models import User
 
-    return {'db': db, 'User': User}
+    return {'db': db, 'User': User, 'datasets': datasets}

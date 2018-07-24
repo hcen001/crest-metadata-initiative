@@ -1,0 +1,56 @@
+from flask import Blueprint, redirect, url_for, abort, render_template, flash, request, session
+from flask_login import login_required, current_user
+from werkzeug.datastructures import CombinedMultiDict
+from werkzeug.utils import secure_filename
+from flask_uploads import UploadNotAllowed
+
+from app.mod_files.forms import FileForm
+from app.mod_rest_client.client import NodeClient
+
+from app import datasets
+from app import app
+import os
+
+# Define the blueprint
+mod_files = Blueprint('files', __name__)
+
+@mod_files.route('/', methods=['GET'])
+@login_required
+def index():
+    js = render_template('files/index.js')
+    return render_template('files/index.html', user=current_user, title='Files', js=js)
+
+@mod_files.route('/upload', methods=['GET', 'POST'])
+@login_required
+def upload():
+    form = FileForm()
+
+    if request.method == 'POST':
+        form = FileForm()
+        if request.files['file'] is not None:
+            try:
+                filename = datasets.save(request.files['file'])
+            except UploadNotAllowed as e:
+                flash('File not allowed.', 'danger')
+                return redirect(url_for('files.upload'))
+            else:
+                url = datasets.url(filename)
+        else:
+            flash('No file was selectec to be uploaded.', 'danger')
+            return redirect(url_for('files.upload'))
+
+        filepath = os.path.join(app.root_path, 'static/uploads/datasets/', filename)
+        files = {'filedata': open(filepath, 'rb')}
+
+        upload_response = NodeClient().upload(current_user.ticket, files, '-shared-')
+
+        if upload_response.status_code == 201:
+            flash('File was successfully uploaded to the repository', 'success')
+            if os.path.exists(filepath):
+                os.remove(filepath)
+        else:
+            flash('An unexpected error happened while trying to upload the file to the repository', 'danger')
+        return redirect(url_for('files.index'))
+
+    js = render_template('files/upload/wizard.js')
+    return render_template('files/upload/wizard.html', user=current_user, title='Upload files', form=form, js=js)

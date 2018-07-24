@@ -2,8 +2,9 @@ from app.models import Base, PersonBase
 from app import db, login
 
 from flask_login import current_user
+from flask import session
 
-from app.mod_rest_client.client import AuthClient
+from app.mod_rest_client.client import AuthClient, NodeClient
 
 # Define a User model
 class User(PersonBase):
@@ -38,6 +39,10 @@ class User(PersonBase):
 
     def is_admin(self):
         pass
+
+    def fetch_session_info(self):
+        response = NodeClient().shared_folder_info(self.ticket)
+        session['shared_folder_node_id'] = response.body['entry']['id']
 
     @property
     def is_authenticated(self):
