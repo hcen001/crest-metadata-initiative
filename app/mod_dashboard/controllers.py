@@ -2,7 +2,8 @@ from flask import Blueprint, redirect, url_for, abort, render_template, flash
 from flask_login import login_required, current_user
 
 from app.mod_rest_client.client import NodeClient
-from app.mod_dashboard.models import UserFiles
+from app.mod_files.models import UserFiles
+from app.mod_rest_client.constants import Who
 
 import pprint
 
@@ -22,14 +23,14 @@ def index():
 @login_required
 def dashboard():
 
-    pp = pprint.PrettyPrinter(indent=2)
+    # pp = pprint.PrettyPrinter(indent=2)
 
     userfiles = UserFiles()
 
     stats = {}
     stats['private_files'] = len(userfiles.private_files)
-    stats['shared_files_by_me'] = len(userfiles.shared_files_by_me)
-    stats['shared_files_by_others'] = len(userfiles.shared_files_by_others)
+    stats['shared_files_by_me'] = len(userfiles.shared_files_by(Who.me, filter_folders=True))
+    stats['shared_files_by_others'] = len(userfiles.shared_files_by(Who.others, filter_folders=True))
 
     js = render_template('dashboard/index.js')
     return render_template('dashboard/index.html', user=current_user, stats=stats, title='Dashboard', js=js)

@@ -91,17 +91,9 @@ class NodeClient(Client):
         if Services.node.value not in self.api.get_resource_list():
             self.api.add_resource(resource_name=Services.node.value, resource_class=NodesResource)
 
-    def private_filelist(self, ticket):
+    def node_children(self, node, ticket):
         try:
-            response = self.api.node.private_list(body=None, params={'alf_ticket': ticket}, headers={})
-        except Exception as e:
-            return e.response
-        else:
-            return response
-
-    def shared_filelist(self, ticket):
-        try:
-            response = self.api.node.shared_list(body=None, params={'alf_ticket': ticket}, headers={})
+            response = self.api.node.node_children(node, body=None, params={'alf_ticket': ticket}, headers={})
         except Exception as e:
             return e.response
         else:
@@ -116,9 +108,9 @@ class NodeClient(Client):
         else:
             return response
 
-    def shared_folder_info(self, ticket):
+    def node_info(self, node, ticket):
         try:
-            response = self.api.node.shared_folder_info(body=None, params={'alf_ticket': ticket}, headers={})
+            response = self.api.node.node_info(node, body=None, params={'alf_ticket': ticket}, headers={})
         except Exception as e:
             return e.response
         else:

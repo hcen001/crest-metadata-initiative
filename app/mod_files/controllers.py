@@ -5,11 +5,16 @@ from werkzeug.utils import secure_filename
 from flask_uploads import UploadNotAllowed
 
 from app.mod_files.forms import FileForm
+from app.mod_files.models import UserFiles
 from app.mod_rest_client.client import NodeClient
+from app.mod_rest_client.constants import Nodes
 
 from app import datasets
 from app import app
 import os
+import pprint
+
+pp = pprint.PrettyPrinter(indent=2)
 
 # Define the blueprint
 mod_files = Blueprint('files', __name__)
@@ -42,7 +47,7 @@ def upload():
         filepath = os.path.join(app.root_path, 'static/uploads/datasets/', filename)
         files = {'filedata': open(filepath, 'rb')}
 
-        upload_response = NodeClient().upload(current_user.ticket, files, '-shared-')
+        upload_response = NodeClient().upload(current_user.ticket, files, Nodes.shared.value)
 
         if upload_response.status_code == 201:
             flash('File was successfully uploaded to the repository', 'success')
@@ -54,3 +59,13 @@ def upload():
 
     js = render_template('files/upload/wizard.js')
     return render_template('files/upload/wizard.html', user=current_user, title='Upload files', form=form, js=js)
+
+@mod_files.route('/shared_by/<node>', methods=['GET'])
+@login_required
+def shared_by(node):
+    # print(node)
+    tree = UserFiles().shared_files_tree()
+
+    # pp.pprint(tree)
+    js = render_template('files/shared_by/index.js')
+    return render_template('files/shared_by/index.html', user=current_user, title='Shared files uploaded by me', tree=tree, js=js)

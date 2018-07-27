@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1 class="page-title"> {{ title }}
+        <small>manage shared files and its metadata</small>
+    </h1>
+    <div class="page-bar">
+        <ul class="page-breadcrumb">
+            <li>
+                <i class="icon-home"></i>
+                <a href="{{ url_for('dashboard.index') }}">Home</a>
+                <i class="fa fa-angle-right"></i>
+            </li>
+            <li>
+                <i class="icon-folder"></i>
+                <a href="{{ url_for('files.index') }}">Files</a>
+            </li>
+        </ul>
+    </div>
+    <!-- END PAGE HEADER-->
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="alert alert-{{ messages[0][0] }}">
+            <button class="close" data-close="alert"></button>
+            <span>{{ messages[0][1] }}</span>
+        </div>
+        {% endif %}
+    {% endwith %}
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="portlet light ">
+                <div class="portlet-title">
+                    <div class="caption">
+                        <i class="icon-social-dribbble font-blue-sharp"></i>
+                        <span class="caption-subject font-blue-sharp bold uppercase">Shared Files</span>
+                    </div>
+                </div>
+                <div class="portlet-body">
+                    <div id="tree" class="tree-demo">
+                        <ul>
+                            {% for id, nodes in tree.items() -%}
+                            <li data-jstree='{ "selected" : true, "opened": true }'> {{ nodes['name'] }}
+                                <ul>
+                                    {% for node in nodes['children'] recursive -%}
+                                        {% if node.children is defined and node.children|length >= 0 %}
+                                            <li>
+                                        {% else %}
+                                            <li data-jstree='{ "type" : "file" }'>
+                                        {% endif %}
+                                        {{ node['name'] }}
+                                        {% if node.children %}
+                                        <ul>{{ loop(node.children) }}</ul>
+                                        {% endif %}
+                                        </li>
+                                    {%- endfor %}
+                                </ul>
+                            </li>
+                            {%- endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+
+        </div>
+    </div>
+
+{% endblock %}

@@ -14,7 +14,6 @@ class People(Enum):
     userinfo        = webscript_api+"people/{}"
 
 class Node(Enum):
-    private_nodelist        = content_api+"nodes/-my-/children"
-    shared_nodelist         = content_api+"nodes/-shared-/children"
-    shared_folder_info      = content_api+"nodes/-shared-"
+    node_children           = content_api+"nodes/{}/children"
+    node_info               = content_api+"nodes/{}"
     upload                  = content_api+"nodes/{}/children"
