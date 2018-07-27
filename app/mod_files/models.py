@@ -128,3 +128,13 @@ class UserFiles(object):
     def private_files(self):
         entries = self.node_children(Nodes.private.value)
         return [file for file in entries if file['entry']['isFolder'] == False]
+
+    def private_files_tree(self):
+        all_entries = self.node_children(Nodes.private.value)
+        root_id = session['private_folder_node_id']
+        tree = {}
+        tree['root'] = {"id": root_id, "name": "Private folder root", "children": []}
+
+        self.node_tree(all_entries, tree['root'])
+
+        return tree

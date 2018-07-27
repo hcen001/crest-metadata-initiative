@@ -19,7 +19,7 @@
     <!-- BEGIN DASHBOARD STATS 1-->
     <div class="row">
         <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12">
-            <a class="dashboard-stat dashboard-stat-v2 blue" href="#">
+            <a class="dashboard-stat dashboard-stat-v2 blue" href="{{ url_for('files.private') }}">
                 <div class="visual">
                     <i class="fa fa-archive"></i>
                 </div>
@@ -44,7 +44,7 @@
             </a>
         </div>
         <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12">
-            <a class="dashboard-stat dashboard-stat-v2 blue-soft" href="#">
+            <a class="dashboard-stat dashboard-stat-v2 blue-soft" href="{{ url_for('files.shared_by', node='others') }}">
                 <div class="visual">
                     <i class="fa fa-chart-bar"></i>
                 </div>
@@ -64,7 +64,7 @@
     <!-- QUICK LINKS -->
     <div class="row">
         <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12">
-            <a class="dashboard-stat dashboard-stat-v2 green" href="#">
+            <a class="dashboard-stat dashboard-stat-v2 green" href="{{ url_for('files.upload') }}">
                 <div class="visual">
                     <i class="fa fa-file-upload"></i>
                 </div>

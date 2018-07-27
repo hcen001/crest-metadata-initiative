@@ -7,7 +7,7 @@ from flask_uploads import UploadNotAllowed
 from app.mod_files.forms import FileForm
 from app.mod_files.models import UserFiles
 from app.mod_rest_client.client import NodeClient
-from app.mod_rest_client.constants import Nodes
+from app.mod_rest_client.constants import Nodes, Who
 
 from app import datasets
 from app import app
@@ -63,9 +63,13 @@ def upload():
 @mod_files.route('/shared_by/<node>', methods=['GET'])
 @login_required
 def shared_by(node):
-    # print(node)
-    tree = UserFiles().shared_files_tree()
-
-    # pp.pprint(tree)
+    tree = UserFiles().shared_files_tree(Who(node))
     js = render_template('files/shared_by/index.js')
-    return render_template('files/shared_by/index.html', user=current_user, title='Shared files uploaded by me', tree=tree, js=js)
+    return render_template('files/shared_by/index.html', user=current_user, title='Shared files uploaded by '+node, tree=tree, js=js)
+
+@mod_files.route('/private', methods=['GET'])
+@login_required
+def private():
+    tree = UserFiles().private_files_tree()
+    js = render_template('files/shared_by/index.js')
+    return render_template('files/shared_by/index.html', user=current_user, title='Private files uploaded', tree=tree, js=js)

@@ -5,6 +5,7 @@ from flask_login import current_user
 from flask import session
 
 from app.mod_rest_client.client import AuthClient, NodeClient
+from app.mod_rest_client.constants import Nodes
 
 # Define a User model
 class User(PersonBase):
@@ -35,6 +36,7 @@ class User(PersonBase):
         self.authenticated = False
         self.ticket = None
         session.pop('shared_folder_node_id', None)
+        session.pop('shared_private_node_id', None)
         db.session.add(self)
         db.session.commit()
 
@@ -42,9 +44,10 @@ class User(PersonBase):
         pass
 
     def fetch_session_info(self):
-        response = NodeClient().node_info('-shared-', self.ticket)
-        print(response)
+        response = NodeClient().node_info(Nodes.shared.value, self.ticket)
         session['shared_folder_node_id'] = response.body['entry']['id']
+        response = NodeClient().node_info(Nodes.private.value, self.ticket)
+        session['private_folder_node_id'] = response.body['entry']['id']
 
     @property
     def is_authenticated(self):

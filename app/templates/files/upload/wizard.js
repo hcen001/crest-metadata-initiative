@@ -1,3 +1,5 @@
+updateMenu('#files');
+
 var FormWizard = function () {
 
     return {
