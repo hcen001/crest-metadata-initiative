@@ -47,7 +47,7 @@
                                         {% if node.children is defined and node.children|length >= 0 %}
                                             <li>
                                         {% else %}
-                                            <li data-jstree='{ "type" : "file" }'>
+                                            <li data-jstree='{ "type" : "file" }' data-node-id='{{ node['id'] }}'>
                                         {% endif %}
                                         {{ node['name'] }}
                                         {% if node.children %}

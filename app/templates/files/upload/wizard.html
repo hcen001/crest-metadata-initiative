@@ -41,6 +41,7 @@
                 </div>
                 <div class="portlet-body form">
                     <form class="form-horizontal" action="{{ url_for('files.upload') }}" id="submit_form" method="POST" enctype="multipart/form-data">
+                        <input id="node_id" type="hidden" name="node_id">
                         <div class="form-wizard">
                             <div class="form-body">
                                 <ul class="nav nav-pills nav-justified steps">
@@ -75,24 +76,89 @@
                                     <div class="alert alert-success display-none">
                                         <button class="close" data-dismiss="alert"></button> Your form validation is successful! </div>
                                     <div class="tab-pane active" id="tab1">
-                                        <h3 class="block">Select the dataset you want to upload</h3>
+                                        <!-- <h3 class="form-section">Select the dataset you want to upload</h3> -->
+                                        <!--/row-->
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <h3>Select the file you want to upload</h3>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <h3>Select the destination folder</h3>
+                                            </div>
+                                        </div>
+                                        <!--/row-->
                                         <!--/row-->
                                         <div class="row">
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label for="file" class="col-md-3 control-label">{{ form.file.label }}</label>
+                                                    <!-- <label for="file" class="control-label col-md-3">{{ form.file.label }}</label> -->
                                                     <div class="col-md-9">
-                                                        <!-- <input type="file" id="file"> -->
-                                                        {{ form.file() }}
+                                                        <div class="fileinput fileinput-new" data-provides="fileinput">
+                                                            <div class="input-group input-large">
+                                                                <div class="form-control uneditable-input input-fixed input-large" data-trigger="fileinput">
+                                                                    <i class="fa fa-file fileinput-exists"></i>&nbsp;
+                                                                    <span class="fileinput-filename"> </span>
+                                                                </div>
+                                                                <span class="input-group-addon btn default btn-file">
+                                                                    <span class="fileinput-new"> Select file </span>
+                                                                    <span class="fileinput-exists"> Change </span>
+                                                                    {{ form.file() }} </span>
+                                                                <a href="javascript:;" class="input-group-addon btn red fileinput-exists" data-dismiss="fileinput"> Remove </a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <!--/span-->
+                                            <div class="col-md-6">
+                                                <!-- <h3 class="form-section">Select the destination folder</h3> -->
+                                                <div id="tree">
+                                                    <ul>
+                                                        {% for id, nodes in tree.items() -%}
+                                                        <li data-jstree='{ "selected" : true, "opened": true }' data-node-id='{{ nodes['id'] }}'> {{ nodes['name'] }}
+                                                            <ul>
+                                                                {% for node in nodes['children'] recursive -%}
+                                                                    {% if node.children is defined and node.children|length >= 0 %}
+                                                                        <li data-node-id='{{ node['id'] }}'>
+                                                                    {% else %}
+                                                                        <li data-jstree='{ "type" : "file", "disabled": true }'>
+                                                                    {% endif %}
+                                                                    {{ node['name'] }}
+                                                                    {% if node.children %}
+                                                                    <ul>{{ loop(node.children) }}</ul>
+                                                                    {% endif %}
+                                                                    </li>
+                                                                {%- endfor %}
+                                                            </ul>
+                                                        </li>
+                                                        {%- endfor %}
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <!--/row-->
+                                    </div>
+                                    <div class="tab-pane" id="tab2">
+                                        <h3 class="form-section">Provide your profile details</h3>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-3">First Name</label>
+                                                    <div class="col-md-9">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <!--/span-->
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-3">Last Name</label>
+                                                    <div class="col-md-9">
                                                     </div>
                                                 </div>
                                             </div>
                                             <!--/span-->
                                         </div>
                                         <!--/row-->
-                                    </div>
-                                    <div class="tab-pane" id="tab2">
-                                        <h3 class="block">Provide your profile details</h3>
                                     </div>
                                     <div class="tab-pane" id="tab3">
                                         <h3 class="block">Confirm your account</h3>

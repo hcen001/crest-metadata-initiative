@@ -19,13 +19,18 @@ var FormWizard = function () {
                 errorClass: 'help-block help-block-error', // default input error message class
                 focusInvalid: false, // do not focus the last invalid input
                 rules: {
+                    file: {
+                        required: true
+                    }
                 },
 
                 errorPlacement: function (error, element) { // render error placement for each input type
                     if (element.hasClass("select2")) {
                         error.insertAfter(element.next());
-                    } else if (element.parent().hasClass("date-picker")) {
-                        error.insertAfter(element.parent())
+                    } else if (element.attr("name") == "file") {
+                        error.insertAfter(element.parent().parent());
+                    } else if (element.parent().hasClass("date-picker")){
+                        error.insertAfter(element.parent());
                     } else {
                         error.insertAfter(element); // for other inputs, just perform default behavior
                     }
@@ -38,19 +43,16 @@ var FormWizard = function () {
                 },
 
                 highlight: function (element) { // hightlight error inputs
-                    $(element)
-                        .closest('.form-group').removeClass('has-success').addClass('has-error'); // set error class to the control group
+                    $(element).closest('.form-group').removeClass('has-success').addClass('has-error'); // set error class to the control group
                 },
 
                 unhighlight: function (element) { // revert the change done by hightlight
-                    $(element)
-                        .closest('.form-group').removeClass('has-error'); // set error class to the control group
+                    $(element).closest('.form-group').removeClass('has-error'); // set error class to the control group
                 },
 
                 success: function (label) {
-                    if (label.attr("for") == "gender" || label.attr("for") == "payment[]") { // for checkboxes and radio buttons, no need to show OK icon
-                        label
-                            .closest('.form-group').removeClass('has-error').addClass('has-success');
+                    if (label.attr("for") == "file" || label.attr("for") == "payment[]") { // for checkboxes and radio buttons, no need to show OK icon
+                        label.closest('.form-group').removeClass('has-error').addClass('has-success');
                         label.remove(); // remove error label here
                     } else { // display success icon for other inputs
                         label
@@ -171,6 +173,58 @@ var FormWizard = function () {
 
 }();
 
-jQuery(document).ready(function() {
-    FormWizard.init();
-});
+var UITree = function () {
+
+    var handleSample1 = function () {
+
+        $('#tree').jstree({
+            "core" : {
+                "themes" : {
+                    "responsive": false
+                }
+            },
+            "types" : {
+                "default" : {
+                    "icon" : "fa fa-folder icon-state-info icon-lg"
+                },
+                "file" : {
+                    "icon" : "fa fa-file icon-state-info icon-lg"
+                }
+            },
+            "plugins": ["types"]
+        });
+
+        // handle link clicks in tree nodes(support target="_blank" as well)
+        $('#tree').on('select_node.jstree', function(e,data) {
+            var link = $('#' + data.selected).find('a');
+            if (link.attr("href") != "#" && link.attr("href") != "javascript:;" && link.attr("href") != "") {
+                if (link.attr("target") == "_blank") {
+                    link.attr("href").target = "_blank";
+                }
+                document.location.href = link.attr("href");
+                return false;
+            }
+        });
+    }
+
+    $('#tree').on('select_node.jstree', function(e, data) {
+        // console.log(data.selected);
+        var node_id = $('#' + data.selected).data('node-id');
+        $('#node_id').val(node_id);
+    });
+
+    return {
+        //main function to initiate the module
+        init: function () {
+            handleSample1();
+        }
+    };
+
+}();
+
+if (App.isAngularJsApp() === false) {
+    jQuery(document).ready(function() {
+       UITree.init();
+       FormWizard.init();
+    });
+};

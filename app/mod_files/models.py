@@ -21,6 +21,7 @@ class CoreMetadata(BaseTemplate):
     funding                 = db.Column('funding', ARRAY(JSON))
     methods                 = db.Column('methods', db.Text, nullable=True)
     geographic_location     = db.Column('geographic_location', JSON, nullable=True)
+    node_id                 = db.Column('node_id', db.String(64), nullable=False)
     status_id               = db.Column('status_id', db.Integer, db.ForeignKey('status.id'), nullable=False)
 
     status                  = db.relationship('Status', backref='_datasets', foreign_keys=[status_id], lazy=True)
@@ -31,6 +32,7 @@ class CoreMetadata(BaseTemplate):
         self.investigators              = kwargs.get('investigators')
         self.personnel                  = kwargs.get('personnel')
         self.funding                    = kwargs.get('funding')
+        self.node_id                    = kwargs.get('node_id')
         self.methods                    = kwargs.get('methods') or methods
         self.geographic_location        = kwargs.get('geographic_location') or geographic_location
         self.status_id                  = kwargs.get('status_id')
@@ -54,12 +56,15 @@ class UserFiles(object):
 
     def node_children(self, node=Nodes.shared.value, entries=None):
 
+        _entries = []
+
         if entries is None:
             entries = []
 
         response = NodeClient().node_children(node, current_user.ticket)
 
-        _entries = response.body['list']['entries']
+        if response.status_code == 200:
+            _entries = response.body['list']['entries']
 
         for entry in _entries:
             if entry['entry']['isFolder']:
@@ -100,8 +105,10 @@ class UserFiles(object):
 
         if whom == Who.others:
             _ret = [file for file in entries if current_user.username not in file['entry']['createdByUser'].values()]
-        else:
+        if whom == Who.me:
             _ret = [file for file in entries if current_user.username in file['entry']['createdByUser'].values()]
+        if whom == Who.all:
+            _ret = [file for file in entries]
 
         if filter_folders:
             return [file for file in _ret if file['entry']['isFile']]
@@ -122,7 +129,6 @@ class UserFiles(object):
         # pp.pprint(tree)
 
         return tree
-        # return {}
 
     @property
     def private_files(self):

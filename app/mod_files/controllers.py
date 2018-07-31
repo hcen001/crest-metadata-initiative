@@ -28,7 +28,6 @@ def index():
 @mod_files.route('/upload', methods=['GET', 'POST'])
 @login_required
 def upload():
-    form = FileForm()
 
     if request.method == 'POST':
         form = FileForm()
@@ -47,7 +46,11 @@ def upload():
         filepath = os.path.join(app.root_path, 'static/uploads/datasets/', filename)
         files = {'filedata': open(filepath, 'rb')}
 
-        upload_response = NodeClient().upload(current_user.ticket, files, Nodes.shared.value)
+        upload_node = request.form.get('node_id') or Nodes.shared.value
+
+        print('NODE_ID: ', upload_node)
+
+        upload_response = NodeClient().upload(current_user.ticket, files, upload_node)
 
         if upload_response.status_code == 201:
             flash('File was successfully uploaded to the repository', 'success')
@@ -57,8 +60,11 @@ def upload():
             flash('An unexpected error happened while trying to upload the file to the repository', 'danger')
         return redirect(url_for('files.index'))
 
-    js = render_template('files/upload/wizard.js')
-    return render_template('files/upload/wizard.html', user=current_user, title='Upload files', form=form, js=js)
+    js      = render_template('files/upload/wizard.js')
+    form    = FileForm()
+    tree    = UserFiles().shared_files_tree(whom=Who.all)
+    pp.pprint(tree)
+    return render_template('files/upload/wizard.html', user=current_user, title='Upload files', form=form, tree=tree, js=js)
 
 @mod_files.route('/shared_by/<node>', methods=['GET'])
 @login_required

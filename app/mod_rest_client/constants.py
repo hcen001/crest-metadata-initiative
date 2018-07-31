@@ -9,3 +9,4 @@ class Who(Enum):
 
     me                  = 'me'
     others              = 'others'
+    all                 = 'all'
