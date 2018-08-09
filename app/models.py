@@ -1,8 +1,13 @@
 from app import db
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.dialects.postgresql import ARRAY, JSON
+import sqlalchemy as sa
 
 import json
+
+class CastingArray(ARRAY):
+    def bind_expression(self, bindvalue):
+        return sa.cast(bindvalue, self)
 
 # Define a base model for other database tables to inherit
 class Base(db.Model):
@@ -76,8 +81,8 @@ class BaseTemplate(Base):
     shortname       = db.Column('dataset_shortname', db.String(256), nullable=False)
     abstract        = db.Column('abstract', db.Text, nullable=True)
     comments        = db.Column('comments', db.Text, nullable=True)
-    keywords        = db.Column('keywords', ARRAY(db.String(64)), nullable=True)
+    keywords        = db.Column('keywords', ARRAY(db.String(32)), nullable=True)
     start_date      = db.Column('start_date', db.DateTime, default=db.func.current_timestamp())
-    end_date        = db.Column('end_date', db.DateTime, default=db.func.current_timestamp(), nullable=True)
-    datatable       = db.Column('datatable', ARRAY(JSON))
+    end_date        = db.Column('end_date', db.DateTime, nullable=True)
+    datatable       = db.Column('datatable', CastingArray(JSON))
 

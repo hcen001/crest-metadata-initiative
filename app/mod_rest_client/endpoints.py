@@ -17,3 +17,9 @@ class Node(Enum):
     node_children           = content_api+"nodes/{}/children"
     node_info               = content_api+"nodes/{}"
     upload                  = content_api+"nodes/{}/children"
+    rename_folder           = content_api+"nodes/{}"
+    create_folder           = content_api+"nodes/{}/children"
+    add_tags                = content_api+"nodes/{}/tags"
+
+class Tag(Enum):
+    tags                    = content_api+"tags"

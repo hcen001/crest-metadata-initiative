@@ -222,9 +222,111 @@ var UITree = function () {
 
 }();
 
+var FormRepeater = function () {
+
+    return {
+        //main function to initiate the module
+        init: function () {
+            $('.mt-repeater').each(function(){
+                $(this).repeater({
+                    show: function () {
+                        $(this).slideDown();
+                    },
+
+                    hide: function (deleteElement) {
+                        if(confirm('Are you sure you want to delete this element?')) {
+                            $(this).slideUp(deleteElement);
+                        }
+                    },
+
+                    ready: function (setIndexes) {
+
+                    }
+
+                });
+            });
+        }
+
+    };
+
+}();
+
+var handleSelect2 = function () {
+    // Set the "bootstrap" theme as the default theme for all Select2
+    // widgets.
+    //
+    // @see https://github.com/select2/select2/issues/2927
+    $.fn.select2.defaults.set("theme", "bootstrap");
+
+    $("#status").select2({
+        allowClear: true,
+        placeholder: "Select project's status",
+        width: null
+    });
+
+    $("#keywords").select2({
+        placeholder: "Select keywords",
+        allowClear: true,
+        width: null
+    });
+
+    // copy Bootstrap validation states to Select2 dropdown
+    //
+    // add .has-waring, .has-error, .has-succes to the Select2 dropdown
+    // (was #select2-drop in Select2 v3.x, in Select2 v4 can be selected via
+    // body > .select2-container) if _any_ of the opened Select2's parents
+    // has one of these forementioned classes (YUCK! ;-))
+    $(".select2").on("select2:open", function() {
+        if ($(this).parents("[class*='has-']").length) {
+            var classNames = $(this).parents("[class*='has-']")[0].className.split(/\s+/);
+
+            for (var i = 0; i < classNames.length; ++i) {
+                if (classNames[i].match("has-")) {
+                    $("body > .select2-container").addClass(classNames[i]);
+                }
+            }
+        }
+    });
+}
+
+var ComponentsDateTimePickers = function () {
+
+    var handleDatePickers = function () {
+
+        if (jQuery().datepicker) {
+            $('#start_date, #end_date').datepicker({
+                rtl: App.isRTL(),
+                orientation: "left",
+                autoclose: true
+            }).on('changeDate', function(ev){
+                if (ev.target.id == "start_date") {
+                    $("#end_date").val("");
+                    $("#end_date").prop("disabled", false);
+                    $("#end_date").datepicker("setStartDate", ev.target.value)
+                }
+                $(this).valid();
+            });;
+            //$('body').removeClass("modal-open"); // fix bug when inline picker is used in modal
+        }
+
+        $("#end_date").prop("disabled", true);
+    }
+
+    return {
+        //main function to initiate the module
+        init: function () {
+            handleDatePickers();
+        }
+    };
+
+}();
+
 if (App.isAngularJsApp() === false) {
     jQuery(document).ready(function() {
+       ComponentsDateTimePickers.init();
        UITree.init();
        FormWizard.init();
+       FormRepeater.init();
+       handleSelect2();
     });
 };

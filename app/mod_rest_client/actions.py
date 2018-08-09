@@ -1,6 +1,6 @@
 from simple_rest_client.resource import Resource
 
-from app.mod_rest_client.endpoints import Auth, People, Node
+from app.mod_rest_client.endpoints import Auth, People, Node, Tag
 
 class AuthResource(Resource):
     """docstring for AuthResource"""
@@ -19,8 +19,15 @@ class PeopleResource(Resource):
 class NodesResource(Resource):
     """docstring for NodesResource"""
     actions = {
-        'node_children':    {'method': 'GET', 'url': Node.node_children.value},
-        'node_info':        {'method': 'GET', 'url': Node.node_info.value},
-        'upload':           {'method': 'POST', 'url': Node.upload.value}
+        'node_children':    {'method': 'GET',   'url': Node.node_children.value},
+        'node_info':        {'method': 'GET',   'url': Node.node_info.value},
+        'upload':           {'method': 'POST',  'url': Node.upload.value},
+        'rename_folder':    {'method': 'PUT',   'url': Node.rename_folder.value},
+        'create_folder':    {'method': 'POST',  'url': Node.create_folder.value},
+        'add_tags':         {'method': 'POST',  'url': Node.add_tags.value}
     }
 
+class TagsResource(Resource):
+    actions = {
+        'tags':             {'method': 'GET', 'url': Tag.tags.value}
+    }

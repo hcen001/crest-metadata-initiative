@@ -28,6 +28,11 @@ login.init_app(app)
 login.login_view = 'auth.login'
 login.login_message_category = "danger"
 
+from app.mod_auth.models import User
+@login.user_loader
+def load_user(user_id):
+    return User.query.get(user_id)
+
 #Flask-Uploads
 from flask_uploads import UploadSet, configure_uploads
 # app.config['UPLOADED_DATASETS_DEST'] = 'uploads'
@@ -47,5 +52,7 @@ app.register_blueprint(mod_files, url_prefix='/files')
 @app.shell_context_processor
 def make_shell_context():
     from app.mod_auth.models import User
+    from app.mod_files.models import CoreMetadata, Status, UserFiles, Keywords
 
-    return {'db': db, 'User': User, 'datasets': datasets}
+    return {'db': db, 'User': User, 'datasets': datasets, 'CoreMetadata': CoreMetadata, \
+            'Status': Status, 'UserFiles': UserFiles, 'Keywords': Keywords}

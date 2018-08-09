@@ -23,6 +23,7 @@ def login():
     login_form = LoginForm(request.form)
 
     if request.method == 'POST':
+        _next = request.args.get('next')
         if login_form.validate_on_submit():
             response = AuthClient().login(login_form.username.data, login_form.password.data)
             if response.status_code in [401, 403]:
@@ -47,7 +48,7 @@ def login():
                 user.fetch_session_info()
                 login_user(user)
 
-            _next = request.args.get('next')
+            print('NEXT: ', _next)
             if not is_safe_url(_next):
                 return abort(400)
             return redirect(_next or url_for('dashboard.index'))

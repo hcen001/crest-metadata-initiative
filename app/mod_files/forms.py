@@ -1,12 +1,36 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed, FileRequired
-from wtforms import StringField, TextAreaField, DateField, SelectField, RadioField
+from wtforms import StringField, DecimalField, TextAreaField, DateField, SelectField, RadioField, SelectMultipleField
 
 from app import datasets
+from app.mod_files.models import Keywords, UserFiles
 
 from wtforms.validators import DataRequired, InputRequired, Optional
 
+class Select2MultipleField(SelectMultipleField):
+
+    def pre_validate(self, form):
+        # Prevent "not a valid choice" error
+        pass
+
+    def process_formdata(self, valuelist):
+        if valuelist:
+            self.data = ",".join(valuelist)
+        else:
+            self.data = ""
+
 class FileForm(FlaskForm):
+    """docstring for FileForm"""
+    def __init__(self, tags, statuses, *args, **kwargs):
+        super(FileForm, self).__init__()
+        self.tags       = tags
+        self.statuses   = statuses
+
+    def get_form(self, *args, **kwargs):
+        return BaseForm(self.tags, self.statuses)
+
+
+class BaseForm(FlaskForm):
     """docstring for FileForm"""
 
     file                = FileField('File', validators=[FileRequired(), FileAllowed(datasets, 'Datasets only!')])
@@ -18,15 +42,22 @@ class FileForm(FlaskForm):
 
     #personnel
 
-    keywords            = StringField('Keywords', validators=[InputRequired()])
+    keywords            = Select2MultipleField('Keywords', validators=[InputRequired()])
+    additional_keywords = StringField('Additional keywords', validators=[InputRequired()])
 
     #funding
 
     #timeframe
     start_date          = DateField('Start date', validators=[InputRequired()])
     end_date            = DateField('End date', validators=[InputRequired()])
+    status              = SelectField('Status', validators=[InputRequired()])
 
     #geographic location
+    geo_description     = TextAreaField('Verbal description', validators=[Optional()])
+    northbound          = DecimalField('Northbound', validators=[InputRequired()])
+    southbound          = DecimalField('Southbound', validators=[InputRequired()])
+    eastbound           = DecimalField('Eastbound', validators=[InputRequired()])
+    westbound           = DecimalField('Westbound', validators=[InputRequired()])
 
     methods             = TextAreaField('Methods', validators=[Optional()])
 
@@ -39,5 +70,12 @@ class FileForm(FlaskForm):
 
     comments            = TextAreaField('Comments', validators=[Optional()])
 
+    def __init__(self, tags, statuses, *args, **kwargs):
+        super(BaseForm, self).__init__(*args, **kwargs)
+        self.keywords.choices = tags
+        self.status.choices = statuses
 
 
+class CreateFolderForm(FlaskForm):
+
+    name                = StringField('Folder name', validators=[DataRequired()])

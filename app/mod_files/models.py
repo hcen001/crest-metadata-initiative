@@ -1,11 +1,11 @@
 from app import db
 from flask_login import current_user
 from flask import session
-from sqlalchemy.dialects.postgresql import ARRAY, JSON
+from sqlalchemy.dialects.postgresql import JSON, ARRAY
 
-from app.models import Base, BaseTemplate
+from app.models import Base, BaseTemplate, CastingArray
 
-from app.mod_rest_client.client import NodeClient
+from app.mod_rest_client.client import NodeClient, TagClient
 from app.mod_rest_client.constants import Nodes, Who
 
 import pprint
@@ -16,9 +16,9 @@ class CoreMetadata(BaseTemplate):
 
     __tablename__ = 'core_metadata'
 
-    investigators           = db.Column('investigators', ARRAY(JSON))
-    personnel               = db.Column('personnel', ARRAY(JSON))
-    funding                 = db.Column('funding', ARRAY(JSON))
+    investigators           = db.Column('investigators', CastingArray(JSON))
+    personnel               = db.Column('personnel', CastingArray(JSON))
+    funding                 = db.Column('funding', CastingArray(JSON))
     methods                 = db.Column('methods', db.Text, nullable=True)
     geographic_location     = db.Column('geographic_location', JSON, nullable=True)
     node_id                 = db.Column('node_id', db.String(64), nullable=False)
@@ -26,17 +26,24 @@ class CoreMetadata(BaseTemplate):
 
     status                  = db.relationship('Status', backref='_datasets', foreign_keys=[status_id], lazy=True)
 
-    def __init__(self, methods=None, geographic_location=None, **kwargs):
+    def __init__(self, *args, **kwargs):
 
         super(CoreMetadata, self).__init__()
+        self.title                      = kwargs.get('dataset_title')
+        self.shortname                  = kwargs.get('dataset_shortname')
+        self.abstract                   = kwargs.get('abstract')
+        self.comments                   = kwargs.get('comments')
+        self.keywords                   = kwargs.get('keywords')
+        self.start_date                 = kwargs.get('start_date')
+        self.end_date                   = kwargs.get('end_date')
+        self.datatable                  = kwargs.get('datatable')
         self.investigators              = kwargs.get('investigators')
         self.personnel                  = kwargs.get('personnel')
         self.funding                    = kwargs.get('funding')
         self.node_id                    = kwargs.get('node_id')
-        self.methods                    = kwargs.get('methods') or methods
-        self.geographic_location        = kwargs.get('geographic_location') or geographic_location
+        self.methods                    = kwargs.get('methods')
+        self.geographic_location        = kwargs.get('geographic_location')
         self.status_id                  = kwargs.get('status_id')
-
 
 class Status(Base):
     """docstring for Status"""
@@ -50,6 +57,13 @@ class Status(Base):
         super(Status, self).__init__()
         self.name           = kwargs.get('name')
         self.description    = kwargs.get('description')
+
+    @classmethod
+    def select_list(cls):
+        statuses = cls.query.filter(cls.active == True)
+        data = [(status.id, status.name) for status in statuses]
+        data.insert(0,('',''))
+        return data
 
 class UserFiles(object):
     """docstring for UserFiles"""
@@ -126,8 +140,6 @@ class UserFiles(object):
 
         self.node_tree(entries, tree['root'])
 
-        # pp.pprint(tree)
-
         return tree
 
     @property
@@ -144,3 +156,14 @@ class UserFiles(object):
         self.node_tree(all_entries, tree['root'])
 
         return tree
+
+class Keywords(object):
+    """docstring for Tags"""
+
+    @classmethod
+    def taglist(cls):
+        response = TagClient().tags(current_user.ticket)
+        if response.status_code == 200:
+            data = response.body['list']['entries']
+            return [(entry['entry']['tag'], entry['entry']['tag']) for entry in data]
+        return []

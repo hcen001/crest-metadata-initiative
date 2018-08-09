@@ -1,18 +1,20 @@
-from flask import Blueprint, redirect, url_for, abort, render_template, flash, request, session
+from flask import Blueprint, redirect, url_for, abort, render_template, flash, request, session, jsonify
 from flask_login import login_required, current_user
-from werkzeug.datastructures import CombinedMultiDict
 from werkzeug.utils import secure_filename
 from flask_uploads import UploadNotAllowed
 
-from app.mod_files.forms import FileForm
-from app.mod_files.models import UserFiles
+from .forms import CreateFolderForm, FileForm
+from .models import UserFiles, Keywords, Status, CoreMetadata
 from app.mod_rest_client.client import NodeClient
-from app.mod_rest_client.constants import Nodes, Who
+from app.mod_rest_client.constants import Nodes, Who, NodeType, Action
+from app.mod_utils.utils import parse_multi_form, get_list
 
-from app import datasets
-from app import app
+from app import datasets, app
+
 import os
 import pprint
+import json
+from datetime import datetime
 
 pp = pprint.PrettyPrinter(indent=2)
 
@@ -22,15 +24,23 @@ mod_files = Blueprint('files', __name__)
 @mod_files.route('/', methods=['GET'])
 @login_required
 def index():
+    by_me_tree = UserFiles().shared_files_tree(Who.me)
+    by_others_tree = UserFiles().shared_files_tree(Who.others)
     js = render_template('files/index.js')
-    return render_template('files/index.html', user=current_user, title='Files', js=js)
+    form = CreateFolderForm(formdata=None)
+    return render_template('files/index.html', user=current_user, title='Shared files', by_me_tree=by_me_tree, by_others_tree=by_others_tree, form=form, js=js)
 
 @mod_files.route('/upload', methods=['GET', 'POST'])
 @login_required
 def upload():
 
     if request.method == 'POST':
-        form = FileForm()
+
+        request_data = parse_multi_form(request.form)
+        node_id = ''
+
+        ###########FILE UPLOAD###########
+
         if request.files['file'] is not None:
             try:
                 filename = datasets.save(request.files['file'])
@@ -48,23 +58,116 @@ def upload():
 
         upload_node = request.form.get('node_id') or Nodes.shared.value
 
-        print('NODE_ID: ', upload_node)
-
         upload_response = NodeClient().upload(current_user.ticket, files, upload_node)
 
         if upload_response.status_code == 201:
+            node_id = upload_response.body['entry']['id']
             flash('File was successfully uploaded to the repository', 'success')
             if os.path.exists(filepath):
                 os.remove(filepath)
         else:
             flash('An unexpected error happened while trying to upload the file to the repository', 'danger')
-        return redirect(url_for('files.index'))
 
-    js      = render_template('files/upload/wizard.js')
-    form    = FileForm()
-    tree    = UserFiles().shared_files_tree(whom=Who.all)
-    pp.pprint(tree)
-    return render_template('files/upload/wizard.html', user=current_user, title='Upload files', form=form, tree=tree, js=js)
+        ###########FILE UPLOAD###########
+
+        ############TAG ADDING###########
+        all_keywords = request.form.getlist('keywords') + request_data.get('additional_keywords').split(',')
+        added_tags = get_list([{"tag": keyword} for keyword in all_keywords])
+        add_tag_response = NodeClient().add_tags(node_id, current_user.ticket, added_tags)
+        pp.pprint(add_tag_response)
+        if add_tag_response.status_code == 201:
+            flash('Keywords were successfully added to the file in the repository', 'success')
+        else:
+            flash('An unexpected error occurred while trying to add keywords to the file in the repository', 'danger')
+        ############TAG ADDING###########
+
+        data = {}
+
+        data['node_id']                 = node_id
+        data['dataset_title']           = request_data.get('title')
+        data['dataset_shortname']       = request_data.get('shortname')
+        data['abstract']                = request_data.get('abstract') or None
+        data['comments']                = request_data.get('comments') or None
+        data['keywords']                = all_keywords
+        data['start_date']              = datetime.strptime(request_data.get('start_date'), '%m/%d/%Y')
+        data['end_date']                = datetime.strptime(request_data.get('end_date'), '%m/%d/%Y') if request_data.get('end_date') else None
+        data['status_id']               = request_data.get('status')
+        data['geographic_location']     = get_list([{ "northbound": request_data.get('northbound'),"southbound": request_data.get('southbound'),
+                                            "eastbound": request_data.get('eastbound'), "westbound": request_data.get('westbound'),
+                                            "description": request_data.get('geo_description')}])[0]
+        data['methods']                 = request_data.get('methods') or None
+        data['datatable']               = get_list(list(request_data['datatable'].values()))  if 'datatable' in request_data else None
+        data['investigators']           = get_list(list(request_data['investigators'].values())) if 'investigators' in request_data else None
+        data['personnel']               = get_list(list(request_data['personnel'].values())) if 'personnel' in request_data else None
+        data['funding']                 = get_list(list(request_data['funding'].values())) if 'funding' in request_data else None
+
+        pp.pprint(data)
+
+        metadata = CoreMetadata(**data)
+
+        try:
+            metadata.add_or_update()
+        except Exception as e:
+            print(e)
+            flash('Metadata for file {} is already registered in the database.'.format(filename), 'danger')
+        else:
+            metadata.save()
+            flash('Metadata for file {} was successfully registered in the database.'.format(filename), 'success')
+
+        return redirect(url_for('.index'))
+
+        # pp.pprint(request.form)
+
+    js          = render_template('files/upload/wizard.js')
+    tree        = UserFiles().shared_files_tree(whom=Who.all)
+    keywords    = Keywords.taglist()
+    statuses    = Status.select_list()
+    # statuses    = [('',''), ('1', 'Ongoing')]
+    form        = FileForm(keywords, statuses)
+    # print(keywords)
+    # pp.pprint(tree)
+    return render_template('files/upload/wizard.html', user=current_user, title='Upload files', form=form.get_form(), tree=tree, js=js)
+
+@mod_files.route('/create_folder', methods=['POST'])
+@login_required
+def create_folder():
+
+    if request.method == 'POST':
+        form = CreateFolderForm(request.form)
+        if form.validate():
+
+            request_data = request.form
+            node_id = request_data['node_id']
+            name = request_data['name']
+
+            data = {}
+            data['name'] = name
+            data['nodeType'] = NodeType.folder.value
+
+            create_folder_response = NodeClient().update_folder(node_id, current_user.ticket, data, Action.create_folder)
+
+            if create_folder_response.status_code == 201:
+                flash('The folder was created sucessfully.', 'success')
+            else:
+                flash('An unexpected error occurred while trying to create the folder', 'danger')
+
+            return redirect(url_for('.index'))
+
+@mod_files.route('/update_folder', methods=['POST', 'PUT'])
+@login_required
+def update_folder():
+
+    if request.method == 'PUT':
+        data = request.json
+        name = data['name']
+        node_id = data['node_id']
+        body = {"name": name}
+        update_folder_response = NodeClient().update_folder(node_id, current_user.ticket, body, Action.rename_folder)
+        if update_folder_response.status_code == 200:
+            flash('The item was renamed sucessfully.', 'success')
+        else:
+            flash('An unexpected error occurred while trying to rename the item.', 'danger')
+        return jsonify({"status_code": update_folder_response.status_code, "redirect_url": url_for('.index')})
 
 @mod_files.route('/shared_by/<node>', methods=['GET'])
 @login_required
@@ -79,3 +182,10 @@ def private():
     tree = UserFiles().private_files_tree()
     js = render_template('files/shared_by/index.js')
     return render_template('files/shared_by/index.html', user=current_user, title='Private files uploaded', tree=tree, js=js)
+
+@mod_files.route('/tags', methods=['GET'])
+@login_required
+def tags():
+    _tags = ['csv', 'test']
+    print(jsonify(_tags))
+    return jsonify(_tags)

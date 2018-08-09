@@ -34,3 +34,10 @@ div.dt-buttons {
 .table > thead:first-child > tr:first-child > th {
     font-size: 12px;
 }
+
+.select2-container .select2-selection__rendered > *:first-child.select2-search--inline {
+    width: 100% !important;
+}
+.select2-container .select2-selection__rendered > *:first-child.select2-search--inline .select2-search__field {
+    width: 100% !important;
+}

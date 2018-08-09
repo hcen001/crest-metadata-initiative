@@ -1,8 +1,8 @@
 from simple_rest_client.api import API
 from enum import Enum
 
-from app.mod_rest_client.actions import AuthResource, PeopleResource, NodesResource
-from flask_login import current_user
+from app.mod_rest_client.actions import AuthResource, PeopleResource, NodesResource, TagsResource
+from app.mod_rest_client.constants import Action
 from flask import flash, redirect, url_for
 
 API_ROOT_URL = 'http://ralph.cs.fiu.edu:8080/'
@@ -12,6 +12,7 @@ class Services(Enum):
     auth        = 'auth'
     people      = 'people'
     node        = 'node'
+    tag         = 'tag'
 
 
 class Client(object):
@@ -111,6 +112,40 @@ class NodeClient(Client):
     def node_info(self, node, ticket):
         try:
             response = self.api.node.node_info(node, body=None, params={'alf_ticket': ticket}, headers={})
+        except Exception as e:
+            return e.response
+        else:
+            return response
+
+    def update_folder(self, node, ticket, body, action=Action.create_folder):
+        try:
+            if action == Action.rename_folder:
+                response = self.api.node.rename_folder(node, body=body, params={'alf_ticket': ticket}, headers={})
+            if action == Action.create_folder:
+                response = self.api.node.create_folder(node, body=body, params={'alf_ticket': ticket}, headers={})
+        except Exception as e:
+            return e.response
+        else:
+            return response
+
+    def add_tags(self, node, ticket, body):
+        try:
+            response = self.api.node.add_tags(node, body=body, params={'alf_ticket': ticket}, headers={})
+        except Exception as e:
+            return e.response
+        else:
+            return response
+
+class TagClient(Client):
+    """docstring for TagClient"""
+    def __init__(self):
+        super(TagClient, self).__init__()
+        if Services.tag.value not in self.api.get_resource_list():
+            self.api.add_resource(resource_name=Services.tag.value, resource_class=TagsResource)
+
+    def tags(self, ticket):
+        try:
+            response = self.api.tag.tags(body=None, params={'alf_ticket': ticket}, headers={})
         except Exception as e:
             return e.response
         else:

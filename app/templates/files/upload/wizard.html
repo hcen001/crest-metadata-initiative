@@ -21,10 +21,12 @@
 
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
-        <div class="alert alert-{{ messages[0][0] }}">
-            <button class="close" data-close="alert"></button>
-            <span>{{ messages[0][1] }}</span>
-        </div>
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">
+                    <button class="close" data-close="alert"></button>
+                    <span>{{ message }}</span>
+                </div>
+            {% endfor %}
         {% endif %}
     {% endwith %}
 
@@ -91,7 +93,6 @@
                                         <div class="row">
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <!-- <label for="file" class="control-label col-md-3">{{ form.file.label }}</label> -->
                                                     <div class="col-md-9">
                                                         <div class="fileinput fileinput-new" data-provides="fileinput">
                                                             <div class="input-group input-large">
@@ -114,21 +115,21 @@
                                                 <!-- <h3 class="form-section">Select the destination folder</h3> -->
                                                 <div id="tree">
                                                     <ul>
-                                                        {% for id, nodes in tree.items() -%}
-                                                        <li data-jstree='{ "selected" : true, "opened": true }' data-node-id='{{ nodes['id'] }}'> {{ nodes['name'] }}
+                                                        {%- for id, nodes in tree.items() -%}
+                                                        <li data-jstree='{ "opened": true }' data-node-id='{{ nodes['id'] }}'> {{- nodes['name'] -}}
                                                             <ul>
-                                                                {% for node in nodes['children'] recursive -%}
-                                                                    {% if node.children is defined and node.children|length >= 0 %}
+                                                                {%- for node in nodes['children'] recursive -%}
+                                                                    {%- if node.children is defined and node.children|length >= 0 -%}
                                                                         <li data-node-id='{{ node['id'] }}'>
-                                                                    {% else %}
+                                                                    {%- else -%}
                                                                         <li data-jstree='{ "type" : "file", "disabled": true }'>
-                                                                    {% endif %}
-                                                                    {{ node['name'] }}
-                                                                    {% if node.children %}
-                                                                    <ul>{{ loop(node.children) }}</ul>
-                                                                    {% endif %}
+                                                                    {%- endif -%}
+                                                                    {{- node['name'] -}}
+                                                                    {%- if node.children -%}
+                                                                    <ul>{{- loop(node.children) -}}</ul>
+                                                                    {%- endif -%}
                                                                     </li>
-                                                                {%- endfor %}
+                                                                {%- endfor -%}
                                                             </ul>
                                                         </li>
                                                         {%- endfor %}
@@ -139,26 +140,427 @@
                                         <!--/row-->
                                     </div>
                                     <div class="tab-pane" id="tab2">
-                                        <h3 class="form-section">Provide your profile details</h3>
+                                        <h3 class="form-section">Provide the dataset details</h3>
                                         <div class="row">
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label class="control-label col-md-3">First Name</label>
+                                                    <label class="control-label col-md-3">{{ form.title.label }}</label>
                                                     <div class="col-md-9">
+                                                        {{ form.title(class="form-control", placeholder="Dataset or project title")}}
                                                     </div>
                                                 </div>
                                             </div>
                                             <!--/span-->
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label class="control-label col-md-3">Last Name</label>
+                                                    <label class="control-label col-md-3">{{ form.shortname.label }}</label>
                                                     <div class="col-md-9">
+                                                        {{ form.shortname(class="form-control", placeholder="Short name or nickname you use to refer to this dataset")}}
                                                     </div>
                                                 </div>
                                             </div>
                                             <!--/span-->
                                         </div>
                                         <!--/row-->
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-3">{{ form.abstract.label }}</label>
+                                                    <div class="col-md-9">
+                                                        {{ form.abstract(class="form-control", placeholder="Include what, why, where, when, and how", rows=3)}}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <!--/span-->
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label class="col-md-3 control-label">{{ form.keywords.label }}</label>
+                                                    <div class="col-md-9">
+                                                        {{ form.keywords(class_="select2") }}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <!--/span-->
+                                            <!--/span-->
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label class="col-md-3 control-label">Additional keywords</label>
+                                                    <div class="col-md-9">
+                                                        <input type="text" class="form-control" name="additional_keywords" data-role="tagsinput" placeholder="Additional keywords">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <!--/span-->
+                                        </div>
+                                        <!--/row-->
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-3">{{ form.methods.label }}</label>
+                                                    <div class="col-md-9">
+                                                        {{ form.methods(class="form-control", placeholder="Please be specific, include instrument descriptions, or point to a protocol online, if this is a data compilation please specify datasets used, preferably their DOI or URL plus general citation information", rows=3)}}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-3">{{ form.comments.label }}</label>
+                                                    <div class="col-md-9">
+                                                        {{ form.comments(class="form-control", placeholder="Add any comments or notes", rows=3)}}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <!--/row-->
+                                        <h3 class="form-section">Provide details about the investigators</h3>
+                                        <div class="row">
+                                            <div class="col-md-1"></div>
+                                            <div class="col-md-11">
+                                                <div class="mt-repeater">
+                                                    <div data-repeater-list="investigators">
+                                                        <div data-repeater-item>
+                                                            <div class="row">
+                                                                <div class="col-md-4">
+                                                                    <div class="form-group">
+                                                                        <div class="col-md-12">
+                                                                            <input type="text" class="form-control" name="first_name" placeholder="First name">
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-md-3">
+                                                                    <div class="form-group">
+                                                                        <div class="col-md-12">
+                                                                            <input type="text" class="form-control" name="middle_initial" placeholder="Middle initial">
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-md-3">
+                                                                    <div class="form-group">
+                                                                        <div class="col-md-12">
+                                                                            <input type="text" class="form-control" name="last_name" placeholder="Last name">
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="row">
+                                                                <div class="col-md-4">
+                                                                    <div class="form-group">
+                                                                        <div class="col-md-12">
+                                                                            <input type="text" class="form-control" name="organization" placeholder="Organization">
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-md-3">
+                                                                    <div class="form-group">
+                                                                        <div class="col-md-12">
+                                                                            <input type="text" class="form-control" name="email" placeholder="Email">
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-md-3">
+                                                                    <div class="form-group">
+                                                                        <div class="col-md-12">
+                                                                            <input type="text" class="form-control" name="orcid_id" placeholder="ORCID ID (optional)">
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-md-1">
+                                                                    <label class="control-label">&nbsp;</label>
+                                                                    <a href="javascript:;" data-repeater-delete class="btn btn-danger">
+                                                                        Remove
+                                                                    </a>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <a href="javascript:;" data-repeater-create class="btn btn-info mt-repeater-add">
+                                                                <i class="fa fa-plus"></i> Add investigator</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <h3 class="form-section">Provide details about the personnel</h3>
+                                        <div class="row">
+                                            <div class="col-md-1"></div>
+                                            <div class="col-md-11">
+                                                <div class="mt-repeater">
+                                                    <div data-repeater-list="personnel">
+                                                        <div data-repeater-item>
+                                                            <div class="row">
+                                                                <div class="col-md-3">
+                                                                    <div class="form-group">
+                                                                        <div class="col-md-12">
+                                                                            <input type="text" class="form-control" name="first_name" placeholder="First name">
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-md-1">
+                                                                    <div class="form-group">
+                                                                        <div class="col-md-12">
+                                                                            <input type="text" class="form-control" name="middle_initial" placeholder="Middle initial">
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-md-3">
+                                                                    <div class="form-group">
+                                                                        <div class="col-md-12">
+                                                                            <input type="text" class="form-control" name="last_name" placeholder="Last name">
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-md-3">
+                                                                    <div class="form-group">
+                                                                        <div class="col-md-12">
+                                                                            <input type="text" class="form-control" name="email" placeholder="Email">
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="row">
+                                                                <div class="col-md-4">
+                                                                    <div class="form-group">
+                                                                        <div class="col-md-12">
+                                                                            <input type="text" class="form-control" name="organization" placeholder="Organization">
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-md-3">
+                                                                    <div class="form-group">
+                                                                        <div class="col-md-12">
+                                                                            <input type="text" class="form-control" name="orcid_id" placeholder="ORCID ID (optional)">
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-md-3">
+                                                                    <div class="form-group">
+                                                                        <div class="col-md-12">
+                                                                            <input type="text" class="form-control" name="role" placeholder="Role in project">
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-md-2">
+                                                                    <label class="control-label">&nbsp;</label>
+                                                                    <a href="javascript:;" data-repeater-delete class="btn btn-danger">
+                                                                        Remove
+                                                                    </a>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <a href="javascript:;" data-repeater-create class="btn btn-info mt-repeater-add">
+                                                                <i class="fa fa-plus"></i> Add personnel</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <h3 class="form-section">Provide details about the funding</h3>
+                                        <div class="row">
+                                            <div class="col-md-1"></div>
+                                            <div class="col-md-11">
+                                                <div class="mt-repeater">
+                                                    <div data-repeater-list="funding">
+                                                        <div data-repeater-item>
+                                                            <div class="row">
+                                                                <div class="col-md-3">
+                                                                    <div class="form-group">
+                                                                        <div class="col-md-12">
+                                                                            <input type="text" class="form-control" name="first_name" placeholder="PI First name">
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-md-1">
+                                                                    <div class="form-group">
+                                                                        <div class="col-md-12">
+                                                                            <input type="text" class="form-control" name="middle_initial" placeholder="PI Mid. initial">
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-md-3">
+                                                                    <div class="form-group">
+                                                                        <div class="col-md-12">
+                                                                            <input type="text" class="form-control" name="last_name" placeholder="PI Last name">
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-md-3">
+                                                                    <div class="form-group">
+                                                                        <div class="col-md-12">
+                                                                            <input type="text" class="form-control" name="orcid_id" placeholder="PI ORCID ID (optional)">
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="row">
+                                                                <div class="col-md-4">
+                                                                    <div class="form-group">
+                                                                        <div class="col-md-12">
+                                                                            <input type="text" class="form-control" name="funding_agency" placeholder="Funding Agency">
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-md-3">
+                                                                    <div class="form-group">
+                                                                        <div class="col-md-12">
+                                                                            <input type="text" class="form-control" name="title_of_grant" placeholder="Title of Grant">
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-md-3">
+                                                                    <div class="form-group">
+                                                                        <div class="col-md-12">
+                                                                            <input type="text" class="form-control" name="funding_id_number" placeholder="Funding Identification Number">
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-md-2">
+                                                                    <label class="control-label">&nbsp;</label>
+                                                                    <a href="javascript:;" data-repeater-delete class="btn btn-danger">
+                                                                        Remove
+                                                                    </a>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <a href="javascript:;" data-repeater-create class="btn btn-info mt-repeater-add">
+                                                                <i class="fa fa-plus"></i> Add funding</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <h3 class="form-section">Provide details about the project's timeframe and status</h3>
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-3">{{ form.start_date.label }}</label>
+                                                    <div class="col-md-9">
+                                                        <div class="input-group date date-picker" data-date-format="mm-dd-yyyy">
+                                                            {{ form.start_date(class="form-control") }}
+                                                            <span class="input-group-btn">
+                                                                <button class="btn default" type="button">
+                                                                    <i class="fa fa-calendar"></i>
+                                                                </button>
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-3">{{ form.end_date.label }}</label>
+                                                    <div class="col-md-9">
+                                                        <div class="input-group date date-picker" data-date-format="mm-dd-yyyy">
+                                                            {{ form.end_date(class="form-control", readonly=true) }}
+                                                            <span class="input-group-btn">
+                                                                <button class="btn default" type="button">
+                                                                    <i class="fa fa-calendar"></i>
+                                                                </button>
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-3">{{ form.status.label }}</label>
+                                                    <div class="col-md-9">
+                                                        {{ form.status(class="form-control select2")}}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <h3 class="form-section">Provide geographic location details</h3>
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-2">{{ form.geo_description.label }}</label>
+                                                    <div class="col-md-10">
+                                                        {{ form.geo_description(class="form-control", placeholder="Include a verbal description with details about the geographic location", rows=3)}}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <h4 class="form-section">Coordinates</h4>
+                                        <div class="row">
+                                            <div class="col-md-3">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-3">{{ form.northbound.label }}</label>
+                                                    <div class="col-md-9">
+                                                        {{ form.northbound(class="form-control", placeholder="North bounding coordinates")}}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-3">{{ form.southbound.label }}</label>
+                                                    <div class="col-md-9">
+                                                        {{ form.southbound(class="form-control", placeholder="South bounding coordinates")}}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-3">{{ form.eastbound.label }}</label>
+                                                    <div class="col-md-9">
+                                                        {{ form.eastbound(class="form-control", placeholder="East bounding coordinates")}}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-3">{{ form.westbound.label }}</label>
+                                                    <div class="col-md-9">
+                                                        {{ form.westbound(class="form-control", placeholder="West bounding coordinates")}}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <h3 class="form-section">Provide details about the data table</h3>
+                                        <div class="row">
+                                            <div class="col-md-1"></div>
+                                            <div class="col-md-11">
+                                                <div class="mt-repeater">
+                                                    <div data-repeater-list="datatable">
+                                                        <div data-repeater-item>
+                                                            <div class="row">
+                                                                <div class="col-md-2">
+                                                                    <div class="form-group">
+                                                                        <div class="col-md-12">
+                                                                            {{ form.column_name(class="form-control", placeholder="Column name")}}
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-md-4">
+                                                                    <div class="form-group">
+                                                                        <div class="col-md-12">
+                                                                            {{ form.description(class="form-control", placeholder="Column description")}}
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-md-3">
+                                                                    <div class="form-group">
+                                                                        <div class="col-md-12">
+                                                                            {{ form.explanation(class="form-control", placeholder="Unit or code explanation or date format")}}
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-md-2">
+                                                                    <div class="form-group">
+                                                                        <div class="col-md-12">
+                                                                            {{ form.empty_code(class="form-control", placeholder="Empty value code")}}
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-md-1">
+                                                                    <label class="control-label">&nbsp;</label>
+                                                                    <a href="javascript:;" data-repeater-delete class="btn btn-danger">
+                                                                        Remove
+                                                                    </a>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <a href="javascript:;" data-repeater-create class="btn btn-info mt-repeater-add">
+                                                                <i class="fa fa-plus"></i> Add column</a>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                     <div class="tab-pane" id="tab3">
                                         <h3 class="block">Confirm your account</h3>

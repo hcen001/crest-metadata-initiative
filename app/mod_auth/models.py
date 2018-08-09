@@ -99,7 +99,3 @@ class User(PersonBase):
 
     def __repr__(self):
         return '<User: email={}, name={}>'.format(self.email, self.full_name)
-
-@login.user_loader
-def load_user(user_id):
-    return User.query.get(user_id)
