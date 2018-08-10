@@ -25,13 +25,6 @@ migrate = Migrate(app, db)
 from flask_login import LoginManager
 login = LoginManager()
 login.init_app(app)
-login.login_view = 'auth.login'
-login.login_message_category = "danger"
-
-from app.mod_auth.models import User
-@login.user_loader
-def load_user(user_id):
-    return User.query.get(user_id)
 
 #Flask-Uploads
 from flask_uploads import UploadSet, configure_uploads

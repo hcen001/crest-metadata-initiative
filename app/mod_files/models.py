@@ -45,6 +45,9 @@ class CoreMetadata(BaseTemplate):
         self.geographic_location        = kwargs.get('geographic_location')
         self.status_id                  = kwargs.get('status_id')
 
+    def __repr__(self):
+        pass
+
 class Status(Base):
     """docstring for Status"""
 
@@ -64,6 +67,9 @@ class Status(Base):
         data = [(status.id, status.name) for status in statuses]
         data.insert(0,('',''))
         return data
+
+    def __repr__(self):
+        return '<Status: Name={}, Description={}>'.format(self.name, self.description)
 
 class UserFiles(object):
     """docstring for UserFiles"""
