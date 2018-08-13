@@ -184,7 +184,7 @@ var UITree = function () {
                 }
             },
             "types" : {
-                "default" : {
+                "folder" : {
                     "icon" : "fa fa-folder icon-state-info icon-lg"
                 },
                 "file" : {

@@ -24,11 +24,10 @@ mod_files = Blueprint('files', __name__)
 @mod_files.route('/', methods=['GET'])
 @login_required
 def index():
-    by_me_tree = UserFiles().shared_files_tree(Who.me)
-    by_others_tree = UserFiles().shared_files_tree(Who.others)
+    shared_files_tree = UserFiles().shared_files_tree(Who.all)
     js = render_template('files/index.js')
     form = CreateFolderForm(formdata=None)
-    return render_template('files/index.html', user=current_user, title='Shared files', by_me_tree=by_me_tree, by_others_tree=by_others_tree, form=form, js=js)
+    return render_template('files/index.html', user=current_user, title='Shared files', shared_files_tree=shared_files_tree, form=form, js=js)
 
 @mod_files.route('/upload', methods=['GET', 'POST'])
 @login_required
@@ -122,10 +121,7 @@ def upload():
     tree        = UserFiles().shared_files_tree(whom=Who.all)
     keywords    = Keywords.taglist()
     statuses    = Status.select_list()
-    # statuses    = [('',''), ('1', 'Ongoing')]
     form        = FileForm(keywords, statuses)
-    # print(keywords)
-    # pp.pprint(tree)
     return render_template('files/upload/wizard.html', user=current_user, title='Upload files', form=form.get_form(), tree=tree, js=js)
 
 @mod_files.route('/create_folder', methods=['POST'])
@@ -163,8 +159,17 @@ def update_folder():
         node_id = data['node_id']
         body = {"name": name}
         update_folder_response = NodeClient().update_folder(node_id, current_user.ticket, body, Action.rename_folder)
+        pp.pprint(update_folder_response)
         if update_folder_response.status_code == 200:
             flash('The item was renamed sucessfully.', 'success')
+        elif update_folder_response.status_code == 403:
+            flash('You don\'t have permission to update this item.', 'danger')
+        elif update_folder_response.status_code == 404:
+            flash('The parent folder does\'t exists.', 'danger')
+        elif update_folder_response.status_code == 409:
+            flash('Updated name clashes with an existing item in the current folder.', 'danger')
+        elif update_folder_response.status_code == 409:
+            flash('There was an integrity error in the request, possibly from invalid characters. Please try again.', 'danger')
         else:
             flash('An unexpected error occurred while trying to rename the item.', 'danger')
         return jsonify({"status_code": update_folder_response.status_code, "redirect_url": url_for('.index')})
@@ -187,5 +192,19 @@ def private():
 @login_required
 def tags():
     _tags = ['csv', 'test']
-    print(jsonify(_tags))
     return jsonify(_tags)
+
+@mod_files.route('/edit', methods=['GET', 'POST'])
+@login_required
+def edit(node_id):
+    pass
+
+@mod_files.route('/metadata', methods=['GET'])
+@login_required
+def metadata():
+
+    metadata_id = request.args.get('metadata_id')
+    data = CoreMetadata.query.filter_by(id = metadata_id).first()
+
+    _metadata = {"id": metadata_id, "data": data.serialize()}
+    return jsonify(_metadata)

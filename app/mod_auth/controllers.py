@@ -32,7 +32,7 @@ def login():
 
     if request.method == 'POST':
         login_form = LoginForm()
-        _next = request.args.get('next')
+        _next = request.args.get('next') or 'dashboard.index'
         if login_form.validate_on_submit():
             response = AuthClient().login(login_form.username.data, login_form.password.data)
             if response.status_code in [401, 403]:
@@ -59,7 +59,7 @@ def login():
 
             if not is_safe_url(_next):
                 return abort(400)
-            return redirect(url_for(_next) or url_for('dashboard.index'))
+            return redirect(url_for(_next))
 
     login_form = LoginForm(formdata=None)
     return render_template('auth/login.html', title='Sign In', login_form=login_form)

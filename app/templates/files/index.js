@@ -1,6 +1,22 @@
 updateMenu('#files');
 
-var new_node_id = '';
+var no_metadata = function() {
+    $('#metadata-loading-info').hide();
+    $('#tab-links').hide();
+    $('#tab-content').hide();
+    $('#additional-tab-links').hide();
+    $('#additional-tab-content').hide();
+    $('#additional-metadata').hide();
+};
+
+var activate_tab = function(tab, content){
+    $(tab).fadeIn(1000, function(){
+        var active_tab_id = $(content).find("div.active").attr("id");
+        $(tab).find("a[href='#"+active_tab_id+"']").parent().addClass("active");
+    });
+    $(tab).fadeIn(1000);
+    $(content).fadeIn(1000);
+};
 
 var display_modal = function(obj){
     var parent_name = obj['text'];
@@ -8,14 +24,14 @@ var display_modal = function(obj){
     $("#node_id").val(node_id);
     $("#parent_name").val(parent_name);
     $("#basic").modal('show');
-}
+};
 
 var update_node_server = function(node_id, node_name, action) {
     var url = '';
     if (action === "rename") {
         url = '{{ url_for('files.update_folder') }}';
         method = 'PUT';
-        message = 'The folder was renamed sucessfully.';
+        message = 'The item was renamed sucessfully.';
     }
     if (action === "create") {
         url = '{{ url_for('files.create_folder') }}';
@@ -31,12 +47,7 @@ var update_node_server = function(node_id, node_name, action) {
         contentType: 'application/json;charset=UTF-8',
         data: JSON.stringify({"name": name, "node_id": node_id}, null, '\t'),
         success: function( data, textStatus, jQxhr ){
-            if (data['new_node_id']) {
-                new_node_id = data['new_node_id']
-            }
-            if ([200, 201].includes(data['status_code'])) {
-                window.location.href = data["redirect_url"];
-            };
+            window.location.href = data["redirect_url"];
         },
         error: function( jqXhr, textStatus, errorThrown ){
             console.log(textStatus);
@@ -58,11 +69,120 @@ var update_node = function(e, data, action) {
     update_node_server(node_id, data.text, action);
 };
 
+var load_metadata = function(metadata_id) {
+    $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+    $.ajax({
+        type: 'GET',
+        url: $SCRIPT_ROOT + '/files/metadata',
+        data: {
+            metadata_id: metadata_id
+        },
+        success: function(data) {
+            meta = data.data;
+            $('#title').text(meta.title);
+            $('#shortname').text(meta.shortname);
+            $('#abstract').text(meta.abstract ? meta.abstract : 'N/A');
+            $('#begin_date').text(meta.start_date);
+            $('#end_date').text(meta.end_date ? meta.end_date : 'N/A');
+            $('#status').text(meta.status);
+            $('#description').text(meta.geographic_location.description ? meta.geographic_location.description : 'N/A');
+            $('#north').text(meta.geographic_location.northbound ? meta.geographic_location.northbound : 'N/A');
+            $('#south').text(meta.geographic_location.southbound ? meta.geographic_location.southbound : 'N/A');
+            $('#west').text(meta.geographic_location.westbound ? meta.geographic_location.westbound : 'N/A');
+            $('#east').text(meta.geographic_location.eastbound ? meta.geographic_location.eastbound : 'N/A');
+            if (meta.keywords) {
+                meta.keywords.forEach(function(element){
+                    $('#keywords').append('<span class="label label-default">'+element+'</span> &nbsp;');
+                });
+            };
+            $('#methods').text(meta.methods ? meta.methods : 'N/A');
+            $('#comments').text(meta.comments ? meta.methods : 'N/A');
+            if (meta.investigators) {
+                meta.investigators.forEach(function(element){
+                    var tr = $('<tr></tr>');
+                    tr.append('<td>'+element.first_name+'</td>');
+                    tr.append(element.middle_initial ? '<td>'+element.middle_initial+'</td>' : '<td>N/A</td>');
+                    tr.append('<td>'+element.last_name+'</td>');
+                    tr.append(element.organization ? '<td>'+element.organization+'</td>' : '<td>N/A</td>');
+                    tr.append(element.email ? '<td>'+element.email+'</td>' : '<td>N/A</td>');
+                    tr.append(element.orcid_id ? '<td>'+element.orcid_id+'</td>' : '<td>N/A</td>');
+                    $('#investigators_tbl > tbody').append(tr);
+                });
+            };
+            if (meta.personnel) {
+                meta.personnel.forEach(function(element){
+                    var tr = $('<tr></tr>');
+                    tr.append('<td>'+element.first_name+'</td>');
+                    tr.append(element.middle_initial ? '<td>'+element.middle_initial+'</td>' : '<td>N/A</td>');
+                    tr.append('<td>'+element.last_name+'</td>');
+                    tr.append(element.organization ? '<td>'+element.organization+'</td>' : '<td>N/A</td>');
+                    tr.append(element.email ? '<td>'+element.email+'</td>' : '<td>N/A</td>');
+                    tr.append(element.orcid_id ? '<td>'+element.orcid_id+'</td>' : '<td>N/A</td>');
+                    tr.append(element.role ? '<td>'+element.role+'</td>' : '<td>N/A</td>');
+                    $('#personnel_tbl > tbody').append(tr);
+                });
+            };
+            if (meta.funding) {
+                meta.funding.forEach(function(element){
+                    var tr = $('<tr></tr>');
+                    tr.append('<td>'+element.first_name+'</td>');
+                    tr.append(element.middle_initial ? '<td>'+element.middle_initial+'</td>' : '<td>N/A</td>');
+                    tr.append('<td>'+element.last_name+'</td>');
+                    tr.append(element.orcid_id ? '<td>'+element.orcid_id+'</td>' : '<td>N/A</td>');
+                    tr.append(element.title_of_grant ? '<td>'+element.title_of_grant+'</td>' : '<td>N/A</td>');
+                    tr.append(element.funding_agency ? '<td>'+element.funding_agency+'</td>' : '<td>N/A</td>');
+                    tr.append(element.funding_id ? '<td>'+element.funding_id+'</td>' : '<td>N/A</td>');
+                    $('#funding_tbl > tbody').append(tr);
+                });
+            };
+            if (meta.datatable) {
+                meta.datatable.forEach(function(element){
+                    var tr = $('<tr></tr>');
+                    tr.append(element.column_name ? '<td>'+element.column_name+'</td>' : '<td>N/A</td>');
+                    tr.append(element.description ? '<td>'+element.description+'</td>' : '<td>N/A</td>');
+                    tr.append(element.explanation ? '<td>'+element.explanation+'</td>' : '<td>N/A</td>');
+                    tr.append(element.empty_code ? '<td>'+element.empty_code+'</td>' : '<td>N/A</td>');
+                    $('#datatable_tbl > tbody').append(tr);
+                });
+            };
+            $('#metadata-loading-info').fadeOut(1000, function () {
+                activate_tab('#tab-links', '#tab-content');
+                activate_tab('#additional-tab-links', '#additional-tab-content');
+                $('#additional-metadata').show();
+            });
+        },
+        error: function(error) {
+            console.log(error);
+        }
+    });
+};
+
+var clean_metadata = function() {
+    $('#title').empty();
+    $('#shortname').empty();
+    $('#abstract').empty();
+    $('#keywords').empty();
+    $('#methods').empty();
+    $('#comments').empty();
+    $('#begin_date').empty();
+    $('#end_date').empty();
+    $('#status').empty();
+    $('#north').empty();
+    $('#south').empty();
+    $('#west').empty();
+    $('#east').empty();
+    $('#description').empty();
+    $('#investigators_tbl > tbody').empty();
+    $('#personnel_tbl > tbody').empty();
+    $('#funding_tbl > tbody').empty();
+    $('#datatable_tbl > tbody').empty();
+};
+
 var UITree = function () {
 
     var context_menu = function(node) {
-        console.log(node);
-        var tree = $('#shared_by_me_tree').jstree(true);
+
+        var tree = $('#shared_files_tree').jstree(true);
 
         // The default set of all items
         var items = {
@@ -81,11 +201,20 @@ var UITree = function () {
                 "action": function (obj) {
                     tree.edit(node);
                 }
+            },
+            "upload": {
+                "separator_before": true,
+                "separator_after": true,
+                "label": "Upload file here",
+                "action": function (obj) {
+                    console.log(node);
+                }
             }
         };
 
         if (node['type'] == 'file') {
-            delete items.create
+            delete items.create;
+            delete items.upload;
         }
 
 
@@ -115,10 +244,34 @@ var UITree = function () {
         });
     }
 
-    $('#shared_by_me_tree').on('rename_node.jstree', function(e, data){
+    $('#shared_files_tree').on('rename_node.jstree', function(e, data){
         update_node(e, data, 'rename');
     }).on('create_node.jstree', function (e, data) {
         update_node(e, data, 'create');
+    });
+
+    $('#shared_files_tree').on('select_node.jstree', function(e, data) {
+        if (data.node.type == "file") {
+            $('#caption').hide();
+            clean_metadata();
+            var selected = $('#' + data.selected);
+            if ( selected.data("metadata-id") ) {
+                var metadata_id = selected.data("metadata-id");
+                $('#no-metadata-info').hide();
+                if (!$('#tab-content').is(':visible')) {
+                    $('#metadata-loading-info').show();
+                };
+                load_metadata(metadata_id);
+            }else{
+                $('#no-metadata-info').show();
+                no_metadata();
+            };
+        }else{
+            $('#metadata-loading-info').hide();
+            $('#no-metadata-info').hide();
+            no_metadata();
+            $('#caption').show();
+        };
     });
 
     return {
@@ -132,7 +285,6 @@ var UITree = function () {
 
 if (App.isAngularJsApp() === false) {
     jQuery(document).ready(function() {
-       UITree.init('shared_by_me_tree');
-       UITree.init('shared_by_others_tree');
+       UITree.init('shared_files_tree');
     });
 };

@@ -45,8 +45,29 @@ class CoreMetadata(BaseTemplate):
         self.geographic_location        = kwargs.get('geographic_location')
         self.status_id                  = kwargs.get('status_id')
 
+    def serialize(self):
+        if self is None:
+            return {}
+
+        data = {}
+        data['title']                   = self.title
+        data['shortname']               = self.shortname
+        data['abstract']                = self.abstract
+        data['comments']                = self.comments
+        data['keywords']                = self.keywords
+        data['start_date']              = self.start_date.strftime('%m/%d/%Y')
+        data['end_date']                = self.end_date.strftime('%m/%d/%Y')
+        data['datatable']               = self.datatable
+        data['investigators']           = self.investigators
+        data['personnel']               = self.personnel
+        data['funding']                 = self.funding
+        data['methods']                 = self.methods
+        data['geographic_location']     = self.geographic_location
+        data['status']                  = self.status.name
+        return data
+
     def __repr__(self):
-        pass
+        return '<Metadata: node_id={} , id={}>'.format(self.node_id, self.id)
 
 class Status(Base):
     """docstring for Status"""
@@ -103,7 +124,11 @@ class UserFiles(object):
             if entry['entry']['isFolder']:
                 root.get('children').append({"id": entry['entry']['id'], "name": entry['entry']['name'], "children": []})
             if entry['entry']['isFile']:
-                root.get('children').append({"id": entry['entry']['id'], "name": entry['entry']['name']})
+                metadata = CoreMetadata.query.filter_by(node_id = entry['entry']['id']).first()
+                if metadata is not None:
+                    root.get('children').append({"id": entry['entry']['id'], "name": entry['entry']['name'], "metadata_id": str(metadata.id)})
+                else:
+                    root.get('children').append({"id": entry['entry']['id'], "name": entry['entry']['name']})
 
         if entry['entry']['parentId'] != root_id:
             for child in root.get('children'):

@@ -21,10 +21,12 @@
 
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
-        <div class="alert alert-{{ messages[0][0] }}">
-            <button class="close" data-close="alert"></button>
-            <span>{{ messages[0][1] }}</span>
-        </div>
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">
+                    <button class="close" data-close="alert"></button>
+                    <span>{{ message }}</span>
+                </div>
+            {% endfor %}
         {% endif %}
     {% endwith %}
 
@@ -33,28 +35,32 @@
             <div class="portlet light ">
                 <div class="portlet-title">
                     <div class="caption">
-                        <i class="icon-social-dribbble font-blue-sharp"></i>
+                        <i class="icon-folder font-blue-sharp"></i>
                         <span class="caption-subject font-blue-sharp bold uppercase">{{title}}</span>
+                    </div>
+                    <div class="actions">
+                        <a href="{{ url_for('files.upload')}}" class="btn btn-circle btn-default">
+                            <i class="fa fa-plus"></i> Upload a new file </a>
                     </div>
                 </div>
                 <div class="portlet-body">
                     <div id="tree" class="tree-demo">
                         <ul>
-                            {% for id, nodes in tree.items() -%}
-                            <li data-jstree='{ "selected" : true, "opened": true }'> {{ nodes['name'] }}
+                            {%- for id, nodes in tree.items() -%}
+                            <li data-jstree='{ "opened": true }'> {{ nodes['name'] }}
                                 <ul>
-                                    {% for node in nodes['children'] recursive -%}
-                                        {% if node.children is defined and node.children|length >= 0 %}
+                                    {%- for node in nodes['children'] recursive -%}
+                                        {%- if node.children is defined and node.children|length >= 0 -%}
                                             <li>
-                                        {% else %}
-                                            <li data-jstree='{ "type" : "file" }' data-node-id='{{ node['id'] }}'>
-                                        {% endif %}
+                                        {%- else %}
+                                            <li data-jstree='{ "type" : "file" }' data-node-id='{{ node['id'] }}' data-metadata-id={{ node['metadata_id'] }}>
+                                        {%- endif -%}
                                         {{ node['name'] }}
-                                        {% if node.children %}
+                                        {%- if node.children -%}
                                         <ul>{{ loop(node.children) }}</ul>
-                                        {% endif %}
+                                        {%- endif -%}
                                         </li>
-                                    {%- endfor %}
+                                    {%- endfor -%}
                                 </ul>
                             </li>
                             {%- endfor %}
@@ -63,8 +69,309 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-6">
+        <div class="col-md-8">
+            <!-- BEGIN Portlet PORTLET-->
+            <div class="portlet light">
+                <div class="portlet-title tabbable-line">
+                    <div class="caption">
+                        <i class="icon-layers"></i>
+                        <span class="caption-subject bold uppercase"> Associated metadata</span>
+                    </div>
+                    <ul id="tab-links" class="nav nav-tabs" style="display: none;">
+                        <li>
+                            <a href="#dataset_details" data-toggle="tab"> Details details </a>
+                        </li>
+                        <li>
+                            <a href="#timeframe_details" data-toggle="tab"> Timeframe details </a>
+                        </li>
+                        <li>
+                            <a href="#geographic_details" data-toggle="tab"> Geographic details </a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="portlet-body form">
+                    <div id="tab-content" class="tab-content" style="display: none;">
+                        <div class="tab-pane active" id="dataset_details">
+                            <form class="form-horizontal" role="form">
+                                <div class="form-body">
+                                    <h3 class="form-section">Dataset details</h3>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-3"><strong>Title:</strong></label>
+                                                <div class="col-md-9">
+                                                    <p id="title" class="form-control-static"></p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <!--/span-->
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-3"><strong>Shortname:</strong></label>
+                                                <div class="col-md-9">
+                                                    <p id="shortname" class="form-control-static"></p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <!--/span-->
+                                    </div>
+                                    <!--/row-->
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-2"><strong>Abstract:</strong></label>
+                                                <div class="col-md-10">
+                                                    <p id="abstract" class="form-control-static"></p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <!--/span-->
+                                    </div>
+                                    <!--/row-->
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-2"><strong>Keywords:</strong></label>
+                                                <div id="keywords" class="col-md-10">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <!--/span-->
+                                    </div>
+                                    <!--/row-->
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-2"><strong>Methods:</strong></label>
+                                                <div class="col-md-10">
+                                                    <p id="methods" class="form-control-static"></p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <!--/span-->
+                                    </div>
+                                    <!--/row-->
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-2"><strong>Comments:</strong></label>
+                                                <div class="col-md-10">
+                                                    <p id="comments" class="form-control-static"></p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <!--/span-->
+                                    </div>
+                                    <!--/row-->
+                                </div>
+                            </form>
+                        </div>
+                        <div class="tab-pane" id="timeframe_details">
+                            <form class="form-horizontal" role="form">
+                                <div class="form-body">
+                                    <h3 class="form-section">Timeframe details</h3>
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-4"><strong>Begin date:</strong></label>
+                                                <div class="col-md-8">
+                                                    <p id="begin_date" class="form-control-static"></p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-3"><strong>End date:</strong></label>
+                                                <div class="col-md-9">
+                                                    <p id="end_date" class="form-control-static"></p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-3"><strong>Status:</strong></label>
+                                                <div class="col-md-9">
+                                                    <p id="status" class="form-control-static"></p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="tab-pane" id="geographic_details">
+                            <form class="form-horizontal" role="form">
+                            <h3 class="form-section">Bounding coordinates</h3>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-3"><strong>Northern:</strong></label>
+                                        <div class="col-md-9">
+                                            <p id="north" class="form-control-static"></p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!--/span-->
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-3"><strong>Southern:</strong></label>
+                                        <div class="col-md-9">
+                                            <p id="south" class="form-control-static"></p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!--/span-->
+                            </div>
+                            <!--/row-->
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-3"><strong>Western:</strong></label>
+                                        <div class="col-md-9">
+                                            <p id="west" class="form-control-static"></p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!--/span-->
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="control-label col-md-3"><strong>Eastern:</strong></label>
+                                        <div class="col-md-9">
+                                            <p id="east" class="form-control-static"></p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!--/span-->
+                            </div>
+                            <!--/row-->
+                            <h3 class="form-section">Description</h3>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <label class="control-label col-md-2"><strong>Description:</strong></label>
+                                    <div class="col-md-10">
+                                        <p id="description" class="form-control-static"></p>
+                                    </div>
+                                </div>
+                            </div>
+                            </form>
+                        </div>
+                    </div>
+                    <h3 id="caption" style="text-align: center;">Select a file to fetch its metadata</h3>
+                    <div id="no-metadata-info" class="alert alert-warning alert-dismissable" style="display: none; text-align: center;">
+                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true"></button>
+                        <h2>There is no metadata recorded for this file.</h2>
+                        <br>
+                        <h3>Click <a href="{{ url_for('files.edit') }}" class="alert-link">HERE</a> to add metadata to this file</h3>
+                    </div>
+                    <div id="metadata-loading-info" class="alert alert-success alert-dismissable" style="display: none; text-align: center;">
+                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true"></button>
+                        <h2>Loading metadata information for the selected file</h2>
+                        <br>
+                        <img src="{{ url_for('static', filename='assets/global/img/loading-spinner-blue.gif')}}">
+                    </div>
+                </div>
+                <!--/portlet-body-->
+            </div>
+            <!-- END Portlet PORTLET-->
+        </div>
+    </div>
 
+    <div id="additional-metadata" class="row" style="display: none;">
+        <div class="col-md-12">
+            <div class="portlet light">
+                <div class="portlet-title tabbable-line">
+                    <div class="caption">
+                        <i class="icon-layers"></i>
+                        <span class="caption-subject bold uppercase"> Additional metadata</span>
+                    </div>
+                    <ul id="additional-tab-links" class="nav nav-tabs" style="display: none;">
+                        <li>
+                            <a href="#investigators_tab" data-toggle="tab"> Investigators </a>
+                        </li>
+                        <li>
+                            <a href="#personnel_tab" data-toggle="tab"> Personnel </a>
+                        </li>
+                        <li>
+                            <a href="#funding_tab" data-toggle="tab"> Funding </a>
+                        </li>
+                        <li>
+                            <a href="#datatable_tab" data-toggle="tab"> Datatable </a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="portlet-body flip-scroll">
+                    <div id="additional-tab-content" class="tab-content" style="display: none;">
+                        <div class="tab-pane active" id="investigators_tab">
+                            <h3>Investigators</h3>
+                            <table id="investigators_tbl" class="table table-bordered table-striped table-condensed flip-content">
+                                <thead class="flip-content">
+                                    <tr>
+                                        <th> First name </th>
+                                        <th width="5%"> Middle initial </th>
+                                        <th> Last name </th>
+                                        <th> Organization </th>
+                                        <th> E-mail </th>
+                                        <th> ORCID ID </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="tab-pane" id="personnel_tab">
+                            <h3>Personnel</h3>
+                            <table id="personnel_tbl" class="table table-bordered table-striped table-condensed flip-content">
+                                <thead class="flip-content">
+                                    <tr>
+                                        <th> First name </th>
+                                        <th width="5%"> Middle initial </th>
+                                        <th> Last name </th>
+                                        <th> Organization </th>
+                                        <th> E-mail </th>
+                                        <th> ORCID ID </th>
+                                        <th width="15%"> Role in project </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="tab-pane" id="funding_tab">
+                            <h3>Funding</h3>
+                            <table id="funding_tbl" class="table table-bordered table-striped table-condensed flip-content">
+                                <thead class="flip-content">
+                                    <tr>
+                                        <th> PI First name </th>
+                                        <th width="10%"> PI Middle initial </th>
+                                        <th> PI Last name </th>
+                                        <th> PI ORCID ID </th>
+                                        <th> Title of grant </th>
+                                        <th> Funding Agency </th>
+                                        <th width="15%"> Funding Identification Number </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="tab-pane" id="datatable_tab">
+                            <h3>Datatable</h3>
+                            <table id="datatable_tbl" class="table table-bordered table-striped table-condensed flip-content">
+                                <thead class="flip-content">
+                                    <tr>
+                                        <th width="15%"> Column name </th>
+                                        <th> Description </th>
+                                        <th width="25%"> Unit or code explanation or date format </th>
+                                        <th width="10%"> Empty value code </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
