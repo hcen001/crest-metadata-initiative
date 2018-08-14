@@ -72,17 +72,81 @@ var FormWizard = function () {
 
             var displayConfirm = function() {
                 $('#tab3 .form-control-static', form).each(function(){
-                    var input = $('[name="'+$(this).attr("data-display")+'"]', form);
-                    // console.log(input);
-                    if (input.is(":radio")) {
-                        input = $('[name="'+$(this).attr("data-display")+'"]:checked', form);
+                    var tables = ["investigators", "personnel", "funding", "datatable"];
+                    var table = $(this).attr("data-display");
+                    if ( tables.includes(table) ) {
+                        var tbl = $(this).find("table > tbody");
+                        var items = $('#'+table).repeaterVal();
+                        if (table == "investigators") {
+                            items['investigators'].forEach(function(element){
+                                var tr = $('<tr></tr>');
+                                tr.append('<td>'+element.first_name+'</td>');
+                                tr.append(element.middle_initial ? '<td>'+element.middle_initial+'</td>' : '<td>N/A</td>');
+                                tr.append('<td>'+element.last_name+'</td>');
+                                tr.append(element.organization ? '<td>'+element.organization+'</td>' : '<td>N/A</td>');
+                                tr.append(element.email ? '<td>'+element.email+'</td>' : '<td>N/A</td>');
+                                tr.append(element.orcid_id ? '<td>'+element.orcid_id+'</td>' : '<td>N/A</td>');
+                                tbl.append(tr);
+                            });
+                        };
+                        if (table == "personnel") {
+                            items['personnel'].forEach(function(element){
+                                var tr = $('<tr></tr>');
+                                tr.append('<td>'+element.first_name+'</td>');
+                                tr.append(element.middle_initial ? '<td>'+element.middle_initial+'</td>' : '<td>N/A</td>');
+                                tr.append('<td>'+element.last_name+'</td>');
+                                tr.append(element.organization ? '<td>'+element.organization+'</td>' : '<td>N/A</td>');
+                                tr.append(element.email ? '<td>'+element.email+'</td>' : '<td>N/A</td>');
+                                tr.append(element.orcid_id ? '<td>'+element.orcid_id+'</td>' : '<td>N/A</td>');
+                                tr.append(element.role ? '<td>'+element.role+'</td>' : '<td>N/A</td>');
+                                tbl.append(tr);
+                            });
+                        };
+                        if (table == "funding") {
+                            items['funding'].forEach(function(element){
+                                var tr = $('<tr></tr>');
+                                tr.append('<td>'+element.first_name+'</td>');
+                                tr.append(element.middle_initial ? '<td>'+element.middle_initial+'</td>' : '<td>N/A</td>');
+                                tr.append('<td>'+element.last_name+'</td>');
+                                tr.append(element.orcid_id ? '<td>'+element.orcid_id+'</td>' : '<td>N/A</td>');
+                                tr.append(element.title_of_grant ? '<td>'+element.title_of_grant+'</td>' : '<td>N/A</td>');
+                                tr.append(element.funding_agency ? '<td>'+element.funding_agency+'</td>' : '<td>N/A</td>');
+                                tr.append(element.funding_id ? '<td>'+element.funding_id+'</td>' : '<td>N/A</td>');
+                                tbl.append(tr);
+                            });
+                        };
+                        if (table == "datatable") {
+                            items['datatable'].forEach(function(element){
+                                var tr = $('<tr></tr>');
+                                tr.append(element.column_name ? '<td>'+element.column_name+'</td>' : '<td>N/A</td>');
+                                tr.append(element.description ? '<td>'+element.description+'</td>' : '<td>N/A</td>');
+                                tr.append(element.explanation ? '<td>'+element.explanation+'</td>' : '<td>N/A</td>');
+                                tr.append(element.empty_code ? '<td>'+element.empty_code+'</td>' : '<td>N/A</td>');
+                                tbl.append(tr);
+                            });
+                        };
                     }
+                    var input = $('[name="'+$(this).attr("data-display")+'"]', form);
                     if (input.is(":text") || input.is("textarea")) {
+                        if ($(this).attr("data-display") == "additional_keywords") {
+                            var additional_keywords = $("#additional_keywords").tagsinput('items');
+                            additional_keywords.forEach(function(element){
+                                $('#keywords_info').append('<span class="label label-default">'+element+'</span> &nbsp;');
+                            });
+                            return;
+                        };
                         $(this).html(input.val());
                     } else if (input.is("select")) {
-                        $(this).html(input.find('option:selected').text());
-                    } else if (input.is(":radio") && input.is(":checked")) {
-                        $(this).html(input.attr("data-title"));
+                        if ($(this).attr("data-display") == "keywords") {
+                            var keywords = $('#'+$(this).attr("data-display")).select2('data');
+                            keywords.forEach(function(element){
+                                $('#keywords_info').append('<span class="label label-default">'+element.text+'</span> &nbsp;');
+                            });
+                        };
+                        if ($(this).attr("data-display") == "status") {
+                            var selected_status = $('#'+$(this).attr("data-display")).select2('data');
+                            $(this).html(selected_status[0].text);
+                        };
                     }
                 });
             }

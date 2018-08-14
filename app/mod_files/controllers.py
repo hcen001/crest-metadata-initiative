@@ -196,13 +196,15 @@ def tags():
 
 @mod_files.route('/edit', methods=['GET', 'POST'])
 @login_required
-def edit(node_id):
-    pass
+def edit():
+    metadata_id = request.args.get('metadata_id')
+    print(metadata_id)
+    return redirect(url_for('.index'))
 
 @mod_files.route('/metadata', methods=['GET'])
 @login_required
 def metadata():
-
+    print('REQUEST: ', request)
     metadata_id = request.args.get('metadata_id')
     data = CoreMetadata.query.filter_by(id = metadata_id).first()
 

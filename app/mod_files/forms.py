@@ -49,15 +49,15 @@ class BaseForm(FlaskForm):
 
     #timeframe
     start_date          = DateField('Start date', validators=[InputRequired()])
-    end_date            = DateField('End date', validators=[InputRequired()])
+    end_date            = DateField('End date', validators=[Optional()])
     status              = SelectField('Status', validators=[InputRequired()])
 
     #geographic location
     geo_description     = TextAreaField('Verbal description', validators=[Optional()])
-    northbound          = DecimalField('Northbound', validators=[InputRequired()])
-    southbound          = DecimalField('Southbound', validators=[InputRequired()])
-    eastbound           = DecimalField('Eastbound', validators=[InputRequired()])
-    westbound           = DecimalField('Westbound', validators=[InputRequired()])
+    northbound          = DecimalField('Northbound', validators=[Optional()])
+    southbound          = DecimalField('Southbound', validators=[Optional()])
+    eastbound           = DecimalField('Eastbound', validators=[Optional()])
+    westbound           = DecimalField('Westbound', validators=[Optional()])
 
     methods             = TextAreaField('Methods', validators=[Optional()])
 
