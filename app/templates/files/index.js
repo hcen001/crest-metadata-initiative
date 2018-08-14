@@ -11,6 +11,16 @@ var no_metadata = function() {
     $('#additional-metadata').hide();
 };
 
+var enable_edit = function(node_id) {
+    $('#edit-button').attr('href', $SCRIPT_ROOT + '/files/edit' + '?metadata_id=' + node_id);
+    $('#edit-button').show();
+};
+
+var disable_edit = function() {
+    $('#edit-button').attr('href', '#');
+    $('#edit-button').hide();
+};
+
 var activate_tab = function(tab, content){
     $(tab).fadeIn(1000, function(){
         var active_tab_id = $(content).find("div.active").attr("id");
@@ -261,6 +271,7 @@ var UITree = function () {
             $('#caption').hide();
             clean_metadata();
             var selected = $('#' + data.selected);
+            enable_edit(node_id);
             if ( selected.data("metadata-id") ) {
                 var metadata_id = selected.data("metadata-id");
                 $('#no-metadata-info').hide();

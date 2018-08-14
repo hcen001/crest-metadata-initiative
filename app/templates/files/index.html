@@ -36,18 +36,20 @@
                 <div class="portlet-title">
                     <div class="caption">
                         <i class="icon-folder font-blue-sharp"></i>
-                        <span class="caption-subject font-green-meadow bold uppercase">Shared files in the repository</span>
+                        <span class="caption-subject font-green-meadow bold uppercase">Shared files</span>
                     </div>
                     <div class="actions">
                         <a href="{{ url_for('files.upload')}}" class="btn btn-circle btn-default">
                             <i class="fa fa-plus"></i> Upload a new file </a>
+                        <a id="edit-button" href="{{ url_for('files.edit')}}" class="btn btn-circle btn-default" style="display: none;">
+                            <i class="fa fa-edit"></i> Edit metadata </a>
                     </div>
                 </div>
                 <div class="portlet-body">
                     <div id="shared_files_tree" class="tree-demo">
                         <ul>
                             {%- for id, nodes in shared_files_tree.items() -%}
-                            <li data-jstree='{ "selected" : true, "opened": true }' data-node-id='{{ nodes['id'] }}'> {{- nodes['name'] -}}
+                            <li data-jstree='{ "opened": true }' data-node-id='{{ nodes['id'] }}'> {{- nodes['name'] -}}
                                 <ul>
                                     {%- for node in nodes['children'] recursive -%}
                                         {%- if node.children is defined and node.children|length >= 0 -%}
