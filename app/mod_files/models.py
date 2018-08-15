@@ -29,8 +29,8 @@ class CoreMetadata(BaseTemplate):
     def __init__(self, *args, **kwargs):
 
         super(CoreMetadata, self).__init__()
-        self.title                      = kwargs.get('dataset_title')
-        self.shortname                  = kwargs.get('dataset_shortname')
+        self.title                      = kwargs.get('title')
+        self.shortname                  = kwargs.get('shortname')
         self.abstract                   = kwargs.get('abstract')
         self.comments                   = kwargs.get('comments')
         self.keywords                   = kwargs.get('keywords')
@@ -55,8 +55,8 @@ class CoreMetadata(BaseTemplate):
         data['abstract']                = self.abstract
         data['comments']                = self.comments
         data['keywords']                = self.keywords
-        data['start_date']              = self.start_date.strftime('%m/%d/%Y')
-        data['end_date']                = self.end_date.strftime('%m/%d/%Y')
+        data['start_date']              = self.start_date.strftime('%m/%d/%Y') if self.start_date else None
+        data['end_date']                = self.end_date.strftime('%m/%d/%Y') if self.end_date else None
         data['datatable']               = self.datatable
         data['investigators']           = self.investigators
         data['personnel']               = self.personnel
@@ -64,6 +64,36 @@ class CoreMetadata(BaseTemplate):
         data['methods']                 = self.methods
         data['geographic_location']     = self.geographic_location
         data['status']                  = self.status.name
+        return data
+
+    def serialize_form(self):
+        if self is None:
+            return {}
+
+        data = {}
+        data['node_id']                 = self.node_id
+        data['title']                   = self.title
+        data['shortname']               = self.shortname
+        data['abstract']                = self.abstract
+        data['comments']                = self.comments
+        data['keywords']                = self.keywords
+        data['start_date']              = self.start_date
+        data['end_date']                = self.end_date
+        data['datatable']               = self.datatable
+        data['investigators']           = self.investigators
+        data['personnel']               = self.personnel
+        data['funding']                 = self.funding
+        data['methods']                 = self.methods
+        data['northbound']              = float(self.geographic_location.get('northbound')) if \
+            self.geographic_location.get('northbound') else None
+        data['southbound']              = float(self.geographic_location.get('southbound')) if \
+            self.geographic_location.get('northbound') else None
+        data['westbound']               = float(self.geographic_location.get('westbound')) if \
+            self.geographic_location.get('westbound') else None
+        data['eastbound']               = float(self.geographic_location.get('eastbound')) if \
+            self.geographic_location.get('eastbound') else None
+        data['geo_description']         = self.geographic_location.get('description')
+        data['status']                  = self.status.id
         return data
 
     def __repr__(self):

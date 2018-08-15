@@ -9,7 +9,7 @@ from app.mod_rest_client.client import NodeClient
 from app.mod_rest_client.constants import Nodes, Who, NodeType, Action
 from app.mod_utils.utils import parse_multi_form, get_list
 
-from app import datasets, app
+from app import datasets, app, db
 
 import os
 import pprint
@@ -83,8 +83,8 @@ def upload():
         data = {}
 
         data['node_id']                 = node_id
-        data['dataset_title']           = request_data.get('title')
-        data['dataset_shortname']       = request_data.get('shortname')
+        data['title']                   = request_data.get('title')
+        data['shortname']               = request_data.get('shortname')
         data['abstract']                = request_data.get('abstract') or None
         data['comments']                = request_data.get('comments') or None
         data['keywords']                = all_keywords
@@ -100,7 +100,7 @@ def upload():
         data['personnel']               = get_list(list(request_data['personnel'].values())) if 'personnel' in request_data else None
         data['funding']                 = get_list(list(request_data['funding'].values())) if 'funding' in request_data else None
 
-        pp.pprint(data)
+        # pp.pprint(data)
 
         metadata = CoreMetadata(**data)
 
@@ -121,7 +121,7 @@ def upload():
     tree        = UserFiles().shared_files_tree(whom=Who.all)
     keywords    = Keywords.taglist()
     statuses    = Status.select_list()
-    form        = FileForm(keywords, statuses)
+    form        = FileForm(keywords, statuses, data=None)
     return render_template('files/upload/wizard.html', user=current_user, title='Upload files', form=form.get_form(), tree=tree, js=js)
 
 @mod_files.route('/create_folder', methods=['POST'])
@@ -197,14 +197,95 @@ def tags():
 @mod_files.route('/edit', methods=['GET', 'POST'])
 @login_required
 def edit():
-    metadata_id = request.args.get('metadata_id')
-    print(metadata_id)
-    return redirect(url_for('.index'))
+
+    if request.method == 'POST':
+
+        update = False
+        metadata = None
+        request_data = parse_multi_form(request.form)
+
+        if 'metadata_id' in request_data:
+            update = True
+            metadata_id = request_data.pop('metadata_id')
+            metadata = CoreMetadata.query.filter(CoreMetadata.id == metadata_id)
+
+        node_id = request_data.pop('node_id')
+
+        ############TAG ADDING###########
+        all_keywords = request.form.getlist('keywords') + request_data.get('additional_keywords').split(',')
+        added_tags = get_list([{"tag": keyword} for keyword in all_keywords])
+        add_tag_response = NodeClient().add_tags(node_id, current_user.ticket, added_tags)
+        if add_tag_response.status_code == 201:
+            flash('Keywords were successfully added to the file in the repository', 'success')
+        else:
+            flash('An unexpected error occurred while trying to add keywords to the file in the repository', 'danger')
+        ############TAG ADDING###########
+
+        data = {}
+
+        data['node_id']                 = node_id
+        data['title']                   = request_data.get('title')
+        data['shortname']               = request_data.get('shortname')
+        data['abstract']                = request_data.get('abstract') or None
+        data['comments']                = request_data.get('comments') or None
+        data['keywords']                = all_keywords
+        data['start_date']              = datetime.strptime(request_data.get('start_date'), '%m/%d/%Y')
+        data['end_date']                = datetime.strptime(request_data.get('end_date'), '%m/%d/%Y') if request_data.get('end_date') else None
+        data['status_id']               = request_data.get('status')
+        data['geographic_location']     = get_list([{ "northbound": request_data.get('northbound'),"southbound": request_data.get('southbound'),
+                                            "eastbound": request_data.get('eastbound'), "westbound": request_data.get('westbound'),
+                                            "description": request_data.get('geo_description')}])[0]
+        data['methods']                 = request_data.get('methods') or None
+        data['datatable']               = get_list(list(request_data['datatable'].values()))  if 'datatable' in request_data else None
+        data['investigators']           = get_list(list(request_data['investigators'].values())) if 'investigators' in request_data else None
+        data['personnel']               = get_list(list(request_data['personnel'].values())) if 'personnel' in request_data else None
+        data['funding']                 = get_list(list(request_data['funding'].values())) if 'funding' in request_data else None
+
+        if metadata is None:
+            metadata = CoreMetadata(**data)
+
+        try:
+            if update:
+                metadata.update(data)
+                db.session.commit()
+                flash('Metadata for item with ID {} was successfully updated in the database.'.format(node_id), 'success')
+            else:
+                metadata.add_or_update()
+                metadata.save()
+                flash('Metadata for item with ID {} was successfully added to the database.'.format(node_id), 'success')
+        except Exception as e:
+            flash('There was an unexpected error when trying to update the metadata for \
+                item with ID {} in the database.'.format(node_id), 'danger')
+
+        return redirect(url_for('.index'))
+
+
+    if 'id' in request.args:
+        metadata_id = request.args.get('id')
+        metadata = CoreMetadata.query.filter_by(id = metadata_id).first().serialize_form()
+        js_data = {k: (metadata.pop(k) if metadata[k] else [{}]) for k in ('investigators', 'personnel', 'funding', 'datatable')}
+
+        js          = render_template('files/edit/index.js', data=js_data)
+        keywords    = Keywords.taglist()
+        statuses    = Status.select_list()
+        form        = FileForm(keywords, statuses, metadata)
+
+        return render_template('files/edit/index.html', user=current_user, title='Edit metadata', form=form.get_form(), metadata_id=metadata_id, js=js)
+    elif 'node_id' in request.args:
+        node_id     = request.args.get('node_id')
+        js          = render_template('files/edit/index.js')
+        keywords    = Keywords.taglist()
+        statuses    = Status.select_list()
+        form        = FileForm(keywords, statuses, None)
+        return render_template('files/edit/index.html', user=current_user, title='Edit metadata', form=form.get_form(), node_id=node_id, js=js)
+    else:
+        flash('No metadata ID or item ID specified in the request.', 'danger')
+        return redirect(url_for('.index'))
 
 @mod_files.route('/metadata', methods=['GET'])
 @login_required
 def metadata():
-    print('REQUEST: ', request)
+    # print('REQUEST: ', request)
     metadata_id = request.args.get('metadata_id')
     data = CoreMetadata.query.filter_by(id = metadata_id).first()
 

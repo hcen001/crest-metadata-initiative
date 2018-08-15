@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed, FileRequired
-from wtforms import StringField, DecimalField, TextAreaField, DateField, SelectField, RadioField, SelectMultipleField
+from wtforms import StringField, DecimalField, TextAreaField, DateField, SelectField, RadioField, SelectMultipleField, HiddenField
 
 from app import datasets
 from app.mod_files.models import Keywords, UserFiles
@@ -21,13 +21,14 @@ class Select2MultipleField(SelectMultipleField):
 
 class FileForm(FlaskForm):
     """docstring for FileForm"""
-    def __init__(self, tags, statuses, *args, **kwargs):
+    def __init__(self, tags, statuses, data, *args, **kwargs):
         super(FileForm, self).__init__()
         self.tags       = tags
         self.statuses   = statuses
+        self.metadata   = data
 
     def get_form(self, *args, **kwargs):
-        return BaseForm(self.tags, self.statuses)
+        return BaseForm(self.tags, self.statuses, self.metadata)
 
 
 class BaseForm(FlaskForm):
@@ -37,6 +38,7 @@ class BaseForm(FlaskForm):
     title               = StringField('Title', validators=[InputRequired()])
     shortname           = StringField('Short name', validators=[InputRequired()])
     abstract            = TextAreaField('Abstract', validators=[Optional()])
+    node_id             = HiddenField('node_id')
 
     #investigators
 
@@ -48,8 +50,8 @@ class BaseForm(FlaskForm):
     #funding
 
     #timeframe
-    start_date          = DateField('Start date', validators=[InputRequired()])
-    end_date            = DateField('End date', validators=[Optional()])
+    start_date          = DateField('Start date', format='%m/%d/%Y', validators=[InputRequired()])
+    end_date            = DateField('End date', format='%m/%d/%Y', validators=[Optional()])
     status              = SelectField('Status', validators=[InputRequired()])
 
     #geographic location
@@ -70,8 +72,8 @@ class BaseForm(FlaskForm):
 
     comments            = TextAreaField('Comments', validators=[Optional()])
 
-    def __init__(self, tags, statuses, *args, **kwargs):
-        super(BaseForm, self).__init__(*args, **kwargs)
+    def __init__(self, tags, statuses, data, *args, **kwargs):
+        super(BaseForm, self).__init__(data=data, *args, **kwargs)
         self.keywords.choices = tags
         self.status.choices = statuses
 

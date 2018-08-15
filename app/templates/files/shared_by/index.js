@@ -37,7 +37,7 @@ var update_metadata= function(metadata) {
         });
     };
     $('#methods').text(meta.methods ? meta.methods : 'N/A');
-    $('#comments').text(meta.comments ? meta.methods : 'N/A');
+    $('#comments').text(meta.comments ? meta.comments : 'N/A');
     if (meta.investigators) {
         meta.investigators.forEach(function(element){
             var tr = $('<tr></tr>');

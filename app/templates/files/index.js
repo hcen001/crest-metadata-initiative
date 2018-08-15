@@ -11,8 +11,8 @@ var no_metadata = function() {
     $('#additional-metadata').hide();
 };
 
-var enable_edit = function(node_id) {
-    $('#edit-button').attr('href', $SCRIPT_ROOT + '/files/edit' + '?metadata_id=' + node_id);
+var enable_edit = function(metadata_id) {
+    $('#edit-button').attr('href', $SCRIPT_ROOT + '/files/edit' + '?id=' + metadata_id);
     $('#edit-button').show();
 };
 
@@ -100,7 +100,7 @@ var update_metadata= function(metadata) {
         });
     };
     $('#methods').text(meta.methods ? meta.methods : 'N/A');
-    $('#comments').text(meta.comments ? meta.methods : 'N/A');
+    $('#comments').text(meta.comments ? meta.comments : 'N/A');
     if (meta.investigators) {
         meta.investigators.forEach(function(element){
             var tr = $('<tr></tr>');
@@ -271,9 +271,9 @@ var UITree = function () {
             $('#caption').hide();
             clean_metadata();
             var selected = $('#' + data.selected);
-            enable_edit(node_id);
             if ( selected.data("metadata-id") ) {
                 var metadata_id = selected.data("metadata-id");
+                enable_edit(metadata_id);
                 $('#no-metadata-info').hide();
                 if (!$('#tab-content').is(':visible')) {
                     $('#metadata-loading-info').show();
@@ -281,7 +281,7 @@ var UITree = function () {
                 load_metadata(metadata_id);
             }else{
                 $('#no-metadata-info').show();
-                $('#no-metadata-info').find('a').attr('href', $SCRIPT_ROOT + '/files/edit' + '?metadata_id=' + node_id);
+                $('#no-metadata-info').find('a').attr('href', $SCRIPT_ROOT + '/files/edit' + '?node_id=' + node_id);
                 no_metadata();
             };
         }else{
