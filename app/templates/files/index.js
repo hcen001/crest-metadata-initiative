@@ -282,10 +282,10 @@ var UITree = function () {
             }else{
                 $('#no-metadata-info').show();
                 $('#no-metadata-info').find('a').attr('href', $SCRIPT_ROOT + '/files/edit' + '?node_id=' + node_id);
+                $('#edit-button').hide();
                 no_metadata();
             };
         }else{
-            $('#metadata-loading-info').hide();
             $('#no-metadata-info').hide();
             no_metadata();
             $('#caption').show();

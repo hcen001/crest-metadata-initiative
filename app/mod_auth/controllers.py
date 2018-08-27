@@ -37,7 +37,10 @@ def login():
             response = AuthClient().login(login_form.username.data, login_form.password.data)
             if response.status_code in [401, 403]:
                 flash('Incorrect username or password', 'danger')
-                return redirect(url_for('auth.login'))
+                return redirect(url_for('.login'))
+            elif response.status_code in [404]:
+                flash('Repository is down. Please try again later', 'danger')
+                return redirect(url_for('.login'))
 
             alf_ticket =  response.body['data']['ticket']
             user = User.query.filter_by(username=login_form.username.data).first()

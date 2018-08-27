@@ -1,5 +1,7 @@
 updateMenu('#files');
 
+$SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+
 var no_metadata = function() {
     $('#metadata-loading-info').hide();
     $('#tab-links').hide();
@@ -94,7 +96,7 @@ var update_metadata= function(metadata) {
 };
 
 var load_metadata = function(metadata_id) {
-    $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+
     $.ajax({
         type: 'GET',
         url: $SCRIPT_ROOT + '/files/metadata',
@@ -154,6 +156,7 @@ var UITree = function () {
 
         // handle link clicks in tree nodes(support target="_blank" as well)
         $('#tree').on('select_node.jstree', function(e, data) {
+            var node_id = data.node.data.nodeId;
             if (data.node.type == "file") {
                 $('#caption').hide();
                 clean_metadata();
@@ -167,13 +170,12 @@ var UITree = function () {
                     load_metadata(metadata_id);
                 }else{
                     $('#no-metadata-info').show();
+                    $('#no-metadata-info').find('a').attr('href', $SCRIPT_ROOT + '/files/edit' + '?node_id=' + node_id);
                     no_metadata();
                 };
             }else{
-                $('#metadata-loading-info').hide();
                 $('#no-metadata-info').hide();
-                $('#metadata-info').hide();
-                $('#additional-metadata').hide();
+                no_metadata();
                 $('#caption').show();
             };
         });

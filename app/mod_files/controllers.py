@@ -76,6 +76,8 @@ def upload():
         pp.pprint(add_tag_response)
         if add_tag_response.status_code == 201:
             flash('Keywords were successfully added to the file in the repository', 'success')
+        elif add_tag_response.status_code == 403:
+            flash('Could not add keywords to the file in the repository. Permission denied.', 'warning')
         else:
             flash('An unexpected error occurred while trying to add keywords to the file in the repository', 'danger')
         ############TAG ADDING###########
@@ -216,7 +218,9 @@ def edit():
         added_tags = get_list([{"tag": keyword} for keyword in all_keywords])
         add_tag_response = NodeClient().add_tags(node_id, current_user.ticket, added_tags)
         if add_tag_response.status_code == 201:
-            flash('Keywords were successfully added to the file in the repository', 'success')
+            flash('Keywords for item with ID {} were successfully added to the file in the repository'.format(node_id), 'success')
+        elif add_tag_response.status_code == 403:
+            flash('Could not add keywords to the file in the repository. Permission denied.', 'warning')
         else:
             flash('An unexpected error occurred while trying to add keywords to the file in the repository', 'danger')
         ############TAG ADDING###########

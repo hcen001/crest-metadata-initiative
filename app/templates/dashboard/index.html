@@ -2,7 +2,7 @@
 
 {% block content %}
     <h1 class="page-title"> {{ title }}
-        <small>register packages, samples, grant access to new users and request reports</small>
+        <small>upload files, add and visualize metadata, etc...</small>
     </h1>
     <div class="page-bar">
         <ul class="page-breadcrumb">
@@ -18,7 +18,7 @@
 
     <!-- BEGIN DASHBOARD STATS 1-->
     <div class="row">
-        <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12">
+        <!-- <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12">
             <a class="dashboard-stat dashboard-stat-v2 blue" href="{{ url_for('files.private') }}">
                 <div class="visual">
                     <i class="fa fa-archive"></i>
@@ -30,7 +30,7 @@
                     <div class="desc"> Private files uploaded</div>
                 </div>
             </a>
-        </div>
+        </div> -->
         <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12">
             <a class="dashboard-stat dashboard-stat-v2 red" href="{{ url_for('files.shared_by', node='me') }}">
                 <div class="visual">
@@ -80,7 +80,7 @@
     <div class="clearfix"></div>
     <!-- QUICK LINKS -->
 
-    <h1>Configuration</h1>
+    <!-- <h1>Configuration</h1> -->
 
 
 {% endblock %}
