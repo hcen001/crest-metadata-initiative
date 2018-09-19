@@ -54,6 +54,7 @@ def login():
 
                 #Authenticate newly created user
                 u.authenticate(alf_ticket)
+                u.fetch_session_info()
                 login_user(u)
             else:
                 user.authenticate(alf_ticket)

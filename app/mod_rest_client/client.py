@@ -5,8 +5,8 @@ from app.mod_rest_client.actions import AuthResource, PeopleResource, NodesResou
 from app.mod_rest_client.constants import Action
 from flask import flash, redirect, url_for
 
-API_ROOT_URL = 'http://ralph.cs.fiu.edu:8080/'
-# API_ROOT_URL = 'http://crest-cache.cs.fiu.edu/'
+# API_ROOT_URL = 'http://ralph.cs.fiu.edu:8080/'
+API_ROOT_URL = 'http://crest-cache.cs.fiu.edu/'
 
 class Services(Enum):
     """docstring for Services"""

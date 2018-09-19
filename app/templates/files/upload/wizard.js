@@ -71,8 +71,8 @@ var FormWizard = function () {
             });
 
             var displayConfirm = function() {
+                var tables = ["investigators", "personnel", "funding", "datatable"];
                 $('#tab3 .form-control-static', form).each(function(){
-                    var tables = ["investigators", "personnel", "funding", "datatable"];
                     var table = $(this).attr("data-display");
                     if ( tables.includes(table) ) {
                         var tbl = $(this).find("table > tbody");
